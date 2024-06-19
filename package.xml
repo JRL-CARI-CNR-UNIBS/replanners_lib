@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>replanners_lib</name>
+  <version>0.0.0</version>
+  <description>The replanners_lib package</description>
+
+  <maintainer email="c.tonola001@unibs.it">cesare</maintainer>
+
+  <license>TODO</license>
+
+  <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+  <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+  <buildtool_depend condition="$ROS_VERSION == ''">cmake</buildtool_depend>
+  
+  <depend condition="$ROS_VERSION == 1">roscpp</depend>
+  <depend condition="$ROS_VERSION == 2">rclcpp</depend>
+
+  <depend condition="$ROS_VERSION != ''">graph_display</depend>
+
+  <depend>cnr_param</depend>
+  <depend>cnr_logger</depend>
+  <depend>cnr_class_loader</depend>
+  <depend>graph_core</depend>
+
+  <export>
+    <build_type condition="$ROS_VERSION == 1">catkin</build_type>
+    <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
+    <build_type condition="$ROS_VERSION == ''">cmake</build_type>
+  </export>
+
+</package>
