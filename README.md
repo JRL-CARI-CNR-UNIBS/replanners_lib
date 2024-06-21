@@ -11,3 +11,11 @@ The package **replanners_lib** contains the implementation of a library of sampl
  5. [MPRRT](https://ieeexplore.ieee.org/document/7027233)
 
 This library depends on [*graph_core*](https://github.com/JRL-CARI-CNR-UNIBS/cari_motion_planning/tree/master/graph_core), which contains definition of the necessary classes of a path planning problem and the path planning solvers.
+
+<h1 align="center">🚧 Update in Progress! 🚧</h1>
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Updating-blue?style=for-the-badge&logo=github">
+</p>
+<p align="center">
+  We're currently working on documentation. Expect new changes in the next weeks. Stay tuned!
+</p>
