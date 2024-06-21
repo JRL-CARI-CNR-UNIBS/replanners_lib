@@ -30,9 +30,10 @@ set(DEPS
     cnr_class_loader::cnr_class_loader
 )
 
-option(USE_GRAPH_DISPLAY "'graph_display' SUPPORT" OFF)
+###### If ROS is available include graph_display (for debugging) ######
+option(USE_GRAPH_DISPLAY "'graph_display' SUPPORT" ON)
 
-if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}" STREQUAL "2")) #if ROS is available, include graph_display (mainly for debugging)
+if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}" STREQUAL "2")) 
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(graph_display REQUIRED graph_display IMPORTED_TARGET)
   message("ROS VERSION AVAILABLE: $ENV{ROS_VERSION} -> INCLUDING 'graph_display'")
@@ -40,6 +41,7 @@ if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}
   list(APPEND DEPS PkgConfig::graph_display)
   add_compile_definitions(ROS_AVAILABLE)
 endif()
+########################################################################
 
 add_library(${PROJECT_NAME} SHARED
              src/replanners/replanner_base.cpp
@@ -47,12 +49,10 @@ add_library(${PROJECT_NAME} SHARED
              src/replanners/DRRTStar.cpp
              src/replanners/DRRT.cpp
              src/replanners/anytimeDRRT.cpp
-             src/replanners/MARS.cpp
-)
+             src/replanners/MARS.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
+  $<INSTALL_INTERFACE:include>)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DEPS})
 
 add_library("${PROJECT_NAME}::${PROJECT_NAME}" ALIAS ${PROJECT_NAME})
