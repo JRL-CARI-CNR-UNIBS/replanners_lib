@@ -35,11 +35,15 @@ option(USE_GRAPH_DISPLAY "'graph_display' SUPPORT" ON)
 
 if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}" STREQUAL "2")) 
   find_package(PkgConfig REQUIRED)
-  pkg_check_modules(graph_display REQUIRED graph_display IMPORTED_TARGET)
-  message("ROS VERSION AVAILABLE: $ENV{ROS_VERSION} -> INCLUDING 'graph_display'")
-
-  list(APPEND DEPS PkgConfig::graph_display)
-  add_compile_definitions(ROS_AVAILABLE)
+  pkg_check_modules(graph_display graph_display IMPORTED_TARGET)
+  
+  if(graph_display_FOUND)
+    message("ROS VERSION AVAILABLE: $ENV{ROS_VERSION} -> INCLUDING 'graph_display'")
+    list(APPEND DEPS PkgConfig::graph_display)
+    add_compile_definitions(GRAPH_DISPLAY_AVAILABLE)
+  else()
+    message(WARNING "'graph_display' not found, setting GRAPH_DISPLAY_AVAILABLE to false")
+  endif()
 endif()
 ########################################################################
 

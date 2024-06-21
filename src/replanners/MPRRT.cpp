@@ -159,7 +159,7 @@ bool MPRRT::connect2goal(const NodePtr& node)
           CNR_INFO(logger_,"New cost: "<<best_cost);
       }
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
       if(verbose_ && disp_)
         disp_->displayPath(connecting_path_vector_.at(i),"pathplan",marker_color);
 #endif

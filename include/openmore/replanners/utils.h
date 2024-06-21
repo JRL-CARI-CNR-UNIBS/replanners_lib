@@ -9,7 +9,7 @@ namespace openmore
 {
 using namespace graph::core;
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
 #include <graph_display/graph_display.h>
 using namespace graph::display;
 #endif

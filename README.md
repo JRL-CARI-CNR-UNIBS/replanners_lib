@@ -22,11 +22,19 @@ cmake -S replanners_lib -B build/replanners_lib -DCMAKE_INSTALL_PREFIX=${HOME}/r
 make -C build/replanners_lib install
 ```
 
+Then add the path to the install folder in the `.bashrc` file so that other packages will be able to find it:
+
+```bash
+export PATH="$HOME/replanners_lib_ws/install/bin:$PATH"
+export LD_LIBRARY_PATH="$HOME/replanners_lib_ws/install/lib:$LD_LIBRARY_PATH"
+export CMAKE_PREFIX_PATH="$HOME/replanners_lib_ws/install:$CMAKE_PREFIX_PATH"
+```
+
 ## ROS Compatibility
 
-While *replanners_lib* is ROS-free, it can utilize [*graph_display*](https://github.com/JRL-CARI-CNR-UNIBS/graph_display/tree/cesare-devel) for debugging if ROS is available. *graph_display* provides functionalities to display paths, trees, etc., in Rviz and is integrated into some replanners for debugging purposes. If ROS is available and sourced this opion is ON by default, but you can disable it by setting  `-DUSE_GRAPH_DISPLAY=False`
+While *replanners_lib* is ROS-free, it can utilize [*graph_display*](https://github.com/JRL-CARI-CNR-UNIBS/graph_display/tree/cesare-devel) for debugging if ROS is available. *graph_display* provides functionalities to display paths, trees, etc., in Rviz and is integrated into some replanners for debugging purposes. If ROS and *graph_display* are available and sourced this opion is ON by default, but you can disable it by setting `-DUSE_GRAPH_DISPLAY=False`
 
-If you are using ROS 1 and want to include this package into a ROS package, download *replanners_lib* in a catkin workspace and set `catkin config --install`. to allow other ROS packages to find it.
+If you are using ROS 1 and want to include *replanners_lib* into a ROS package, download it in a catkin workspace and set `catkin config --install` to make other ROS packages able to find it.
 
 ## Documentation Update
 

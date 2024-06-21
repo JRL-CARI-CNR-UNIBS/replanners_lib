@@ -733,7 +733,7 @@ PathPtr MARS::bestExistingSolution(const PathPtr& current_solution, std::multima
     CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::CYAN()<<tmp_map.size()<<" solutions with lower cost found in "
              <<graph_duration(graph_time::now()-tic).count()<<" seconds!"<<cnr_logger::RESET());
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
   if(informedOnlineReplanning_disp_)
   {
     disp_->changeNodeSize({0.025,0.025,0.025});
@@ -866,7 +866,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
            return true;
          }());
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
   if(pathSwitch_disp_)
   {
     disp_->changeConnectionSize({0.025,0.025,0.025});
@@ -915,7 +915,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
 
     convertToSubtreeSolution(connecting_path,black_list);
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
     if(pathSwitch_disp_)
     {
       disp_->changeConnectionSize({0.02,0.02,0.02});
@@ -1181,7 +1181,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
 
         assert(connecting_path->cost() == std::numeric_limits<double>::infinity() || connecting_path->cost()<diff_subpath_cost);
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
         if(pathSwitch_disp_)
         {
           disp_->changeConnectionSize({0.02,0.02,0.02});
@@ -1280,7 +1280,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
     }
   }
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
   int new_node_id;
   std::vector<int> node_id_vector;
 #endif
@@ -1374,7 +1374,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
                    CNR_INFO(logger_,"path2 contains path1_node: \n"<<*path2_subpath);
                    CNR_INFO(logger_,"curr sol cost: %f, utopia: %f, diff_subpath_cost: %f, cost subpath2: %f",candidate_solution_cost,utopia,diff_subpath_cost,path2_subpath->cost());
 
-             #ifdef ROS_AVAILABLE
+             #ifdef GRAPH_DISPLAY_AVAILABLE
                    disp_->displayNode(path1_node);
                    disp_->displayPath(path2_subpath);
              #endif
@@ -1427,7 +1427,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
           success = true;
           an_obstacle_ = false;
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
           if(pathSwitch_disp_)
           {
             disp_->clearMarker(pathSwitch_path_id_);
@@ -1442,7 +1442,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
           if(pathSwitch_verbose_ || pathSwitch_disp_)
             CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"It is not a better solution"<<cnr_logger::RESET());
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
           if(pathSwitch_disp_)
           {
             disp_->changeNodeSize(ps_marker_scale_sphere_);
@@ -1472,7 +1472,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
             CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"cycle time mean not updated"<<cnr_logger::RESET());
         }
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
         if(pathSwitch_disp_)
           disp_->nextButton("Press \"next\" to execute the next PathSwitch step");
 #endif
@@ -1487,7 +1487,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
             CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"cycle time mean increased of 20%: "<<pathSwitch_cycle_time_mean_<<cnr_logger::RESET());
         }
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
         if(pathSwitch_disp_)
         {
           CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"Not solved"<<cnr_logger::RESET());
@@ -1508,7 +1508,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
       if(pathSwitch_verbose_ || pathSwitch_disp_)
         CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"It would not be a better solution"<<cnr_logger::RESET());
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
       if(pathSwitch_disp_)
       {
         disp_->changeNodeSize(ps_marker_scale_sphere_);
@@ -1548,7 +1548,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
     if(pathSwitch_verbose_)
       CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"PathSwitch duration: "<<graph_duration(graph_time::now()-tic).count()<<cnr_logger::RESET());
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
     if(pathSwitch_disp_)
     {
       for(const int& id_to_delete:node_id_vector)
@@ -1657,7 +1657,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
   an_obstacle_ = false;
   at_least_a_trial_ = false;
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
   int replanned_path_id;
 #endif
 
@@ -1721,7 +1721,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
 
   assert(replanned_path->getTree() == tree_);
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
   if(informedOnlineReplanning_disp_)
   {
     disp_->changeConnectionSize(informed_marker_scale_);
@@ -1781,7 +1781,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
              return true;
            }());
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
     if(informedOnlineReplanning_disp_)
     {
       disp_->changeNodeSize(informed_marker_scale_sphere_);
@@ -1929,7 +1929,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
         success_ = true;
         an_obstacle_ = false;
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
         if(informedOnlineReplanning_disp_)
         {
           disp_->clearMarker(pathSwitch_path_id_);
@@ -2018,7 +2018,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
       if(informedOnlineReplanning_verbose_ && exit)
         CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"TIME OUT! available time: "<<available_time_<<", time needed for a new cycle: "<<min_time_to_launch_pathSwitch<<cnr_logger::RESET());
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
       if(informedOnlineReplanning_disp_)
       {
         CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"Optimizing..."<<cnr_logger::RESET());
@@ -2034,7 +2034,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
     if(informedOnlineReplanning_verbose_ || informedOnlineReplanning_disp_)
       CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"------------------------------------------"<<cnr_logger::RESET());
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
     if(informedOnlineReplanning_disp_)
       disp_->nextButton("Press \"next\" to execute the next InformedOnlineReplanning step");
 #endif

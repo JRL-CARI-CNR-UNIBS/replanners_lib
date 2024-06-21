@@ -118,7 +118,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
   subtree->rewireOnlyWithPathCheck(replan_start,checked_connections,radius,white_list,2); //rewire only children
 
   //*  STEP 2: ADDING NEW NODES AND SEARCHING WITH RRT*  *//
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
   if(disp_ && verbose_)
     disp_->changeNodeSize({0.01,0.01,0.01});
 #endif
@@ -140,7 +140,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
 
     if(subtree->rewireWithPathCheck(q,checked_connections,radius,white_list,new_node))
     {
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
       if(disp_ && verbose_)
         disp_->displayNode(new_node);
 #endif
@@ -181,7 +181,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
     time = graph_duration(graph_time::now()-tic).count();
   }
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
   if(disp_ && verbose_)
     disp_->defaultNodeSize();
 #endif
@@ -247,7 +247,7 @@ bool DynamicRRTStar::replan()
 
     if(success_)
     {
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
       if(disp_ && verbose_)
       {
         disp_->clearMarkers();

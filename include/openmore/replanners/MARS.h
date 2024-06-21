@@ -168,7 +168,7 @@ public:
 
   void setInformedOnlineReplanningDisp(const bool verbose)
   {
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
     informedOnlineReplanning_disp_ = verbose;
 #else
     informedOnlineReplanning_disp_ = false;
@@ -178,7 +178,7 @@ public:
 
   void setPathSwitchDisp(const bool verbose)
   {
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
     pathSwitch_disp_ = verbose;
 #else
     pathSwitch_disp_ = false;

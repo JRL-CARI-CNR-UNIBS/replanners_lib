@@ -28,7 +28,7 @@ protected:
 
   cnr_logger::TraceLoggerPtr logger_;
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
   DisplayPtr disp_;
 #endif
 
@@ -105,14 +105,14 @@ public:
       replanned_path_->setChecker(checker);
   }
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
   void setDisp(const DisplayPtr &disp)
   {
     disp_ = disp;
   }
 #endif
 
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
   DisplayPtr getDisp() const
   {
     return disp_;

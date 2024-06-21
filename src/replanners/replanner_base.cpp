@@ -21,7 +21,7 @@ ReplannerBase::ReplannerBase(const Eigen::VectorXd& current_configuration,
   max_time_(max_time),
   logger_(logger)
 {
-#ifdef ROS_AVAILABLE
+#ifdef GRAPH_DISPLAY_AVAILABLE
   disp_ = nullptr;
 #endif
 
