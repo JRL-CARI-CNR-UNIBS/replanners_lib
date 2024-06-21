@@ -1,6 +1,6 @@
 #pragma once
 
-#include <replanners_lib/replanners/replanner_base.h>
+#include <openmore/replanners/replanner_base.h>
 #include <graph_core/solvers/rrt.h>
 #include <future>
 #include <mutex>

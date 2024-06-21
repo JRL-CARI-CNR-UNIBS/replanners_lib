@@ -1,4 +1,4 @@
-﻿#include "replanners_lib/replanners/DRRTStar.h"
+﻿#include <openmore/replanners/DRRTStar.h>
 
 namespace openmore
 {
@@ -15,7 +15,7 @@ DynamicRRTStar::DynamicRRTStar(Eigen::VectorXd& current_configuration,
 
   if(std::type_index(ti1) != std::type_index(ti2))
   {
-    tmp_solver = std::make_shared<RRTStar>(solver->getMetrics(), solver->getChecker(), solver->getSampler());
+    tmp_solver = std::make_shared<RRTStar>(solver->getMetrics(),solver->getChecker(),solver->getSampler(),logger_);
     tmp_solver->importFromSolver(solver); //copy the required fields
   }
   else
@@ -60,7 +60,7 @@ bool DynamicRRTStar::nodeBehindObs(NodePtr& node_behind)
 
 bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
 {
-  ros::WallTime tic = ros::WallTime::now();
+  auto tic = graph_time::now();
 
   success_ = false;
   TreePtr tree = current_path_->getTree();
@@ -89,8 +89,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
   double radius = 1.1*((replan_goal->getConfiguration()-replan_start->getConfiguration()).norm())/2;
   Eigen::VectorXd u = (replan_goal->getConfiguration()-replan_start->getConfiguration())/(replan_goal->getConfiguration()-replan_start->getConfiguration()).norm();
   Eigen::VectorXd ball_center = replan_start->getConfiguration()+u*(((replan_goal->getConfiguration()-replan_start->getConfiguration()).norm())/2);
-  LocalInformedSampler sampler (replan_start->getConfiguration(),replan_goal->getConfiguration(),lb_,ub_,std::numeric_limits<double>::infinity());
-  sampler.addBall(ball_center,radius);
+  BallSampler sampler (ball_center,lb_,ub_,logger_,radius);
 
   //*  STEP 1: REWIRING  *//
   std::vector<ConnectionPtr> checked_connections = current_path_->getConnections();
@@ -114,8 +113,8 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
 
   std::vector<NodePtr> black_list;
   black_list.push_back(replan_goal);
-  SubtreePtr subtree = Subtree::createSubtree(tree,replan_start,black_list);
 
+  SubtreePtr subtree = Subtree::createSubtree(tree,replan_start,black_list);
   subtree->rewireOnlyWithPathCheck(replan_start,checked_connections,radius,white_list,2); //rewire only children
 
   //*  STEP 2: ADDING NEW NODES AND SEARCHING WITH RRT*  *//
@@ -133,7 +132,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
   double max_distance = tree->getMaximumDistance();
 
   double max_time = 0.98*max_time_;
-  double time = (ros::WallTime::now()-tic).toSec();
+  double time = graph_duration(graph_time::now()-tic).count();
 
   while(time<0.98*max_time)
   {
@@ -156,7 +155,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
 
       if((cost2new_node+distance_new_node_goal)<cost2goal)
       {
-        if(checker_->checkPath(new_node->getConfiguration(),replan_goal->getConfiguration()))
+        if(checker_->checkConnection(new_node->getConfiguration(),replan_goal->getConfiguration()))
         {
           if(replan_goal->getParentConnectionsSize() != 0)
           {
@@ -165,7 +164,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
           }
 
           double cost = metrics_->cost(new_node->getConfiguration(),replan_goal->getConfiguration());
-          ConnectionPtr conn = std::make_shared<Connection>(new_node,replan_goal);
+          ConnectionPtr conn = std::make_shared<Connection>(new_node,replan_goal,logger_);
           conn->setCost(cost);
           conn->add();
 
@@ -179,7 +178,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
       }
     }
 
-    time = (ros::WallTime::now()-tic).toSec();
+    time = graph_duration(graph_time::now()-tic).count();
   }
 
 #ifdef ROS_AVAILABLE
@@ -194,7 +193,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
   {
     std::vector<ConnectionPtr> new_connections = tree->getConnectionToNode(goal_node_);
 
-    replanned_path_ = std::make_shared<Path>(new_connections,metrics_,checker_);
+    replanned_path_ = std::make_shared<Path>(new_connections,metrics_,checker_,logger_);
     replanned_path_->setTree(tree);
 
     assert(replanned_path_->cost()<std::numeric_limits<double>::infinity());
@@ -210,8 +209,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
              return true;
            }());
 
-    solver_->setStartTree(tree);
-    solver_->setSolution(replanned_path_);
+    solver_->setSolution(replanned_path_); //set thre solver's tree
   }
 
   std::for_each(checked_connections.begin(),checked_connections.end(),[&](ConnectionPtr c) {c->setRecentlyChecked(false);});

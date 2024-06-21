@@ -1,7 +1,9 @@
 #pragma once
 
-#include <replanners_lib/replanners/replanner_base.h>
+#include <openmore/replanners/replanner_base.h>
+#include <graph_core/samplers/ball_sampler.h>
 #include <graph_core/solvers/rrt_star.h>
+#include <graph_core/graph/subtree.h>
 
 //Dynamic path planning and replanning for mobile robots using RRT*
 

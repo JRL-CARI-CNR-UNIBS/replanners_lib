@@ -1,4 +1,4 @@
-#include "replanners_lib/replanners/MPRRT.h"
+#include <openmore/replanners/MPRRT.h>
 
 namespace openmore
 {
@@ -17,7 +17,7 @@ MPRRT::MPRRT(Eigen::VectorXd& current_configuration,
 
   if(std::type_index(ti1) != std::type_index(ti2))
   {
-    tmp_solver = std::make_shared<RRT>(solver->getMetrics(), solver->getChecker(), solver->getSampler());
+    tmp_solver = std::make_shared<RRT>(solver->getMetrics(), solver->getChecker(), solver->getSampler(), logger);
     tmp_solver->importFromSolver(solver); //copy the required fields
   }
   else
@@ -35,11 +35,11 @@ MPRRT::MPRRT(Eigen::VectorXd& current_configuration,
   solver_vector_.clear();
   for(unsigned int i=0;i<number_of_parallel_plannings_;i++)
   {
-    SamplerPtr sampler = std::make_shared<InformedSampler>(lb_,ub_,lb_,ub_);
+    SamplerPtr sampler = std::make_shared<InformedSampler>(lb_,ub_,lb_,ub_,logger_);
     MetricsPtr metrics = metrics_->clone();
 
     CollisionCheckerPtr checker = checker_->clone();
-    RRTPtr sv = std::static_pointer_cast<RRT>(solver_->clone(metrics, checker, sampler));
+    RRTPtr sv = std::make_shared<RRT>(metrics,checker,sampler,logger_);
     sv->importFromSolver(solver_);
 
     solver_vector_.push_back(sv);
@@ -53,7 +53,7 @@ bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf,
                                        const double current_solution_cost,
                                        const int index)
 {
-  ros::WallTime tic = ros::WallTime::now();
+  auto tic = graph_time::now();
 
   TreeSolverPtr solver = solver_vector_.at(index);
 
@@ -73,7 +73,7 @@ bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf,
     PathPtr connecting_path = nullptr;
     bool directly_connected = false;
 
-    time = max_time_-(ros::WallTime::now()-tic).toSec();
+    time = max_time_- graph_duration(graph_time::now()-tic).count();
 
     bool solved = computeConnectingPath(path1_node,path2_node,current_solution_cost,time,
                                         connecting_path,directly_connected,solver);
@@ -89,7 +89,7 @@ bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf,
         best_cost = new_cost;
       }
     }
-  } while((0.98*max_time_-(ros::WallTime::now()-tic).toSec())>0.0 && ros::ok());
+  } while((0.98*max_time_-graph_duration(graph_time::now()-tic).count())>0.0);
 
   mtx_.lock();
   connecting_path_vector_.at(index) = best_solution;
@@ -101,7 +101,7 @@ bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf,
         (cost = current_solution_cost);
 
   if(verbose_)
-    CNR_INFO(logger_,"\n--- THREAD REASUME ---\nthread n: "<<index<<"\nsuccess: "<<success<<"\nconnecting path cost: "<< cost<<"\nn iter: "<<iter<<" time: "<<(ros::WallTime::now()-tic).toSec());
+    CNR_INFO(logger_,"\n--- THREAD REASUME ---\nthread n: "<<index<<"\nsuccess: "<<success<<"\nconnecting path cost: "<< cost<<"\nn iter: "<<iter<<" time: "<<graph_duration(graph_time::now()-tic).count());
 
   return success;
 }
@@ -208,8 +208,8 @@ PathPtr MPRRT::concatWithNewPathToGoal(const std::vector<ConnectionPtr>& connect
     NodePtr node1 = connecting_path_conn.front()->getChild();
     NodePtr node2 = connecting_path_conn.back()->getParent();
 
-    ConnectionPtr conn1 = std::make_shared<Connection>(path1_node,node1,false);
-    ConnectionPtr conn2 = std::make_shared<Connection>(node2,path2_node,false);
+    ConnectionPtr conn1 = std::make_shared<Connection>(path1_node,node1,logger_,false);
+    ConnectionPtr conn2 = std::make_shared<Connection>(node2,path2_node,logger_,false);
 
     conn1->setCost(connecting_path_conn.front()->getCost());
     conn2->setCost(connecting_path_conn.back()->getCost());
@@ -229,7 +229,7 @@ PathPtr MPRRT::concatWithNewPathToGoal(const std::vector<ConnectionPtr>& connect
   }
   else
   {
-    ConnectionPtr conn1 = std::make_shared<Connection>(path1_node,path2_node,false);
+    ConnectionPtr conn1 = std::make_shared<Connection>(path1_node,path2_node,logger_,false);
     conn1->setCost(connecting_path_conn.front()->getCost());
     conn1->add();
 
@@ -237,7 +237,7 @@ PathPtr MPRRT::concatWithNewPathToGoal(const std::vector<ConnectionPtr>& connect
     connecting_path_conn.front()->remove();
   }
 
-  return std::make_shared<Path>(new_connecting_path_conn, metrics_, checker_);
+  return std::make_shared<Path>(new_connecting_path_conn,metrics_,checker_,logger_);
 }
 
 bool MPRRT::computeConnectingPath(const NodePtr &path1_node_fake,
@@ -248,15 +248,15 @@ bool MPRRT::computeConnectingPath(const NodePtr &path1_node_fake,
                                   bool &directly_connected,
                                   TreeSolverPtr& solver)
 {
-  SamplerPtr sampler = std::make_shared<InformedSampler>(path1_node_fake->getConfiguration(), path2_node_fake->getConfiguration(), lb_, ub_,current_solution_cost);
+  SamplerPtr sampler = std::make_shared<InformedSampler>(path1_node_fake->getConfiguration(), path2_node_fake->getConfiguration(), lb_, ub_,logger_,current_solution_cost);
 
   solver->setSampler(sampler);
   solver->resetProblem();
   solver->addStart(path1_node_fake);
 
-  ros::WallTime tic_solver = ros::WallTime::now();
+  auto tic_solver = graph_time::now();
   solver->addGoal(path2_node_fake,max_time);
-  ros::WallTime toc_solver = ros::WallTime::now();
+  auto toc_solver = graph_time::now();
 
   directly_connected = solver->solved();
   bool solver_has_solved;
@@ -268,7 +268,7 @@ bool MPRRT::computeConnectingPath(const NodePtr &path1_node_fake,
   }
   else
   {
-    double solver_time = max_time-(toc_solver-tic_solver).toSec();
+    double solver_time = max_time-graph_duration(toc_solver-tic_solver).count();
     solver_has_solved = solver->solve(connecting_path,10000,solver_time);
   }
 
@@ -277,12 +277,15 @@ bool MPRRT::computeConnectingPath(const NodePtr &path1_node_fake,
 
 bool MPRRT::replan()
 {
-  //Update the scene for all the planning threads
-  moveit_msgs::PlanningScene scene_msg;
-  checker_->getPlanningScene()->getPlanningSceneMsg(scene_msg);
-
+  //Update the collision checkers for all the planning threads
   for(const RRTPtr& solver:solver_vector_)
-    solver->getChecker()->setPlanningSceneMsg(scene_msg);
+    solver->setChecker(checker_->clone());
+
+  //  moveit_msgs::PlanningScene scene_msg;
+  //  checker_->getPlanningScene()->getPlanningSceneMsg(scene_msg);
+
+  //  for(const RRTPtr& solver:solver_vector_)
+  //    solver->getChecker()->setPlanningSceneMsg(scene_msg);
 
   //Replan
   ConnectionPtr conn = current_path_->findConnection(current_configuration_);

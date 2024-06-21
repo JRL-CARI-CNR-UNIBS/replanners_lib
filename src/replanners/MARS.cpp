@@ -1,4 +1,4 @@
-﻿#include "replanners_lib/replanners/MARS.h"
+﻿#include <openmore/replanners/MARS.h>
 
 namespace openmore
 {
@@ -9,7 +9,7 @@ MARS::MARS(const Eigen::VectorXd& current_configuration,
            const cnr_logger::TraceLoggerPtr& logger): ReplannerBase(current_configuration,current_path,max_time,solver,logger)
 {
   tree_ = current_path_->getTree();
-  net_ = std::make_shared<Net>(tree_);
+  net_ = std::make_shared<Net>(tree_,logger_);
 
   copyTreeRoot();
 
@@ -53,7 +53,7 @@ void MARS::copyTreeRoot()
   assert(tree_->getRoot() == current_path_->getConnections().front()->getParent());
   NodePtr new_tree_root =std::make_shared<Node>(paths_start_->getConfiguration());
 
-  ConnectionPtr conn = std::make_shared<Connection>(paths_start_,new_tree_root,false);
+  ConnectionPtr conn = std::make_shared<Connection>(paths_start_,new_tree_root,logger_,false);
   conn->setCost(0.0);
   conn->add();
 
@@ -107,7 +107,7 @@ bool MARS::mergePathToTree(const PathPtr &path)
           max_dist = conn->norm();
       }
 
-      tree_ = std::make_shared<Tree>(path->getNodes().front(),max_dist,checker_,metrics_);
+      tree_ = std::make_shared<Tree>(path->getNodes().front(),max_dist,checker_,metrics_,logger_);
       tree_->addBranch(path->getConnections());
       copyTreeRoot();
     }
@@ -120,7 +120,7 @@ bool MARS::mergePathToTree(const PathPtr &path)
         ConnectionPtr first_conn = current_path_->getConnections().front();
         assert(not first_conn->isNet());
 
-        ConnectionPtr new_first_conn = std::make_shared<Connection>(paths_start_,first_conn->getChild());
+        ConnectionPtr new_first_conn = std::make_shared<Connection>(paths_start_,first_conn->getChild(),logger_);
         new_first_conn->setCost(first_conn->getCost());
         new_first_conn->add();
 
@@ -172,7 +172,7 @@ bool MARS::mergePathToTree(const PathPtr &path)
           {
             assert(not child_conn->isNet());
 
-            conn = std::make_shared<Connection>(paths_start_,child_conn->getChild());
+            conn = std::make_shared<Connection>(paths_start_,child_conn->getChild(),logger_);
             conn->setCost(child_conn->getCost());
             conn->add();
           }
@@ -182,7 +182,7 @@ bool MARS::mergePathToTree(const PathPtr &path)
           {
             assert(not parent_conn->isNet());
 
-            conn = std::make_shared<Connection>(parent_conn->getParent(),paths_start_);
+            conn = std::make_shared<Connection>(parent_conn->getParent(),paths_start_,logger_);
             conn->setCost(parent_conn->getCost());
             conn->add();
           }
@@ -215,7 +215,7 @@ bool MARS::mergePathToTree(const PathPtr &path)
           ConnectionPtr first_conn = path->getConnections().front();
           assert(not first_conn->isNet());
 
-          ConnectionPtr new_first_conn = std::make_shared<Connection>(paths_start_,first_conn->getChild());
+          ConnectionPtr new_first_conn = std::make_shared<Connection>(paths_start_,first_conn->getChild(),logger_);
           new_first_conn->setCost(first_conn->getCost());
           new_first_conn->add();
 
@@ -256,8 +256,8 @@ bool MARS::mergePathToTree(const PathPtr &path)
 
   ConnectionPtr new_goal_conn;
   (goal_node_->getParentConnectionsSize() == 0)?
-        (new_goal_conn = std::make_shared<Connection>(goal_conn->getParent(),goal_node_,false)):
-        (new_goal_conn = std::make_shared<Connection>(goal_conn->getParent(),goal_node_,true ));
+        (new_goal_conn = std::make_shared<Connection>(goal_conn->getParent(),goal_node_,logger_,false)):
+        (new_goal_conn = std::make_shared<Connection>(goal_conn->getParent(),goal_node_,logger_,true ));
 
   new_goal_conn->setCost(goal_conn->getCost());
   new_goal_conn->add();
@@ -303,7 +303,7 @@ void MARS::clearInvalidConnections()
   invalid_connections_.clear();
 }
 
-std::vector<PathPtr> MARS::addAdmissibleCurrentPath(const int &idx_current_conn, PathPtr& admissible_current_path)
+std::vector<PathPtr> MARS::addAdmissibleCurrentPath(const size_t &idx_current_conn, PathPtr& admissible_current_path)
 {
   std::vector<PathPtr> reset_other_paths;
   admissible_current_path = nullptr;
@@ -314,7 +314,7 @@ std::vector<PathPtr> MARS::addAdmissibleCurrentPath(const int &idx_current_conn,
       return other_paths_;
     else
     {
-      int z = current_path_->getConnectionsSize()-2;  //penultimate connection (last connection is at end-1)
+      size_t z = current_path_->getConnectionsSize()-2;  //penultimate connection (last connection is at end-1)
       ConnectionPtr conn;
 
       while(z>=idx_current_conn) //to find the savable part of current_path, the subpath after the connection obstruced by the obstacle
@@ -726,13 +726,14 @@ PathPtr MARS::bestExistingSolution(const PathPtr& current_solution, std::multima
   NodePtr current_node = current_solution->getStartNode();
   double best_cost = current_solution->cost();
 
-  ros::WallTime tic = ros::WallTime::now();
+  auto tic = graph_time::now();
   tmp_map = net_->getConnectionBetweenNodes(current_node,goal_node_,best_cost);
 
   if(informedOnlineReplanning_verbose_)
-    CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::CYAN()<<tmp_map.size()<<" solutions with lower cost found in "<
-             <(ros::WallTime::now()-tic).toSec()<<" seconds!"<<cnr_logger::RESET());
+    CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::CYAN()<<tmp_map.size()<<" solutions with lower cost found in "
+             <<graph_duration(graph_time::now()-tic).count()<<" seconds!"<<cnr_logger::RESET());
 
+#ifdef ROS_AVAILABLE
   if(informedOnlineReplanning_disp_)
   {
     disp_->changeNodeSize({0.025,0.025,0.025});
@@ -752,16 +753,17 @@ PathPtr MARS::bestExistingSolution(const PathPtr& current_solution, std::multima
     disp_->defaultNodeSize();
     disp_->defaultConnectionSize();
   }
+#endif
 
   double new_cost;
   std::vector<ConnectionPtr> solution_conns;
-  tic = ros::WallTime::now();
+  tic = graph_time::now();
   findValidSolution(tmp_map,best_cost,solution_conns,new_cost)?
-        (solution = std::make_shared<Path>(solution_conns,metrics_,checker_)):
+        (solution = std::make_shared<Path>(solution_conns,metrics_,checker_,logger_)):
         (solution = current_solution);
 
   if(informedOnlineReplanning_verbose_ && not tmp_map.empty())
-    CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::CYAN()<<"Solutions checked in "<<(ros::WallTime::now()-tic).toSec()<<" seconds!");
+    CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::CYAN()<<"Solutions checked in "<<graph_duration(graph_time::now()-tic).count()<<" seconds!");
 
   solution->setTree(tree_);
   return solution;
@@ -789,53 +791,23 @@ void MARS::simplifyAdmissibleOtherPaths(const PathPtr& current_solution_path, co
   assert(admissible_other_paths_.size() == reset_other_paths.size());
 }
 
-double MARS::maxSolverTime(const ros::WallTime& tic, const ros::WallTime& tic_cycle)
+double MARS::maxSolverTime(const graph_time_point& tic, const graph_time_point& tic_cycle)
 {
-  ros::WallTime toc = ros::WallTime::now();
-
   double time;
-  double max_time = pathSwitch_max_time_-(toc-tic).toSec();
+  auto toc = graph_time::now();
+  double max_time = pathSwitch_max_time_-graph_duration(toc-tic).count();
 
   if(pathSwitch_disp_)
     time = std::numeric_limits<double>::infinity();
   else if(pathSwitch_cycle_time_mean_ == std::numeric_limits<double>::infinity() || an_obstacle_)
     time = max_time; //when there is an obstacle or when the cycle time mean has not been defined yet
   else
-    time = std::min((2-time_percentage_variability_)*pathSwitch_cycle_time_mean_-(toc-tic_cycle).toSec(),max_time);
+    time = std::min((2-time_percentage_variability_)*pathSwitch_cycle_time_mean_-graph_duration(toc-tic_cycle).count(),max_time);
 
   if(time<0.0)
     time = 0.0;
 
   return time;
-}
-
-void MARS::optimizePath(PathPtr& path, const double& max_time)
-{
-  ros::WallTime tic_opt = ros::WallTime::now();
-  path->warp(0.1,max_time);
-  ros::WallTime toc_opt = ros::WallTime::now();
-
-  if(pathSwitch_verbose_)
-    CNR_INFO(logger_,"max opt time: "<<max_time<<" used time: "<<(toc_opt-tic_opt).toSec());
-}
-
-bool MARS::simplifyReplannedPath(const double& distance)
-{
-  bool simplify1 = false;
-  bool simplify2 = false;
-  bool simplified = false;
-
-  do
-  {
-    simplify1 = replanned_path_->removeNodes();
-    simplify2 = replanned_path_->simplify(distance);
-
-    if(simplify1 || simplify2)
-      simplified = true;
-  }
-  while(simplify1 || simplify2);
-
-  return simplified;
 }
 
 void MARS::convertToSubtreeSolution(const PathPtr& net_solution, const std::vector<NodePtr>& black_nodes)
@@ -857,7 +829,7 @@ void MARS::convertToSubtreeSolution(const PathPtr& net_solution, const std::vect
   }
 }
 
-bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2_node, const double& diff_subpath_cost, const PathPtr& current_solution, const ros::WallTime& tic, const ros::WallTime& tic_cycle, PathPtr& connecting_path, bool& quickly_solved)
+bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2_node, const double& diff_subpath_cost, const PathPtr& current_solution, const graph_time_point &tic, const graph_time_point &tic_cycle, PathPtr& connecting_path, bool& quickly_solved)
 {
   connecting_path = nullptr;
 
@@ -875,9 +847,9 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
   assert(not black_list.empty());
 
   SubtreePtr subtree = Subtree::createSubtree(tree_,path1_node,
-                                                        path2_node->getConfiguration(),
-                                                        diff_subpath_cost,
-                                                        black_list,true); //collision check before adding a node
+                                              path2_node->getConfiguration(),
+                                              diff_subpath_cost,
+                                              black_list,true); //collision check before adding a node
   assert([&]() ->bool{
            std::vector<NodePtr> leaves;
            subtree->getLeaves(leaves);
@@ -894,6 +866,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
            return true;
          }());
 
+#ifdef ROS_AVAILABLE
   if(pathSwitch_disp_)
   {
     disp_->changeConnectionSize({0.025,0.025,0.025});
@@ -902,33 +875,34 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
     disp_->clearMarker(subtree_id);
     disp_->defaultConnectionSize();
   }
+#endif
 
   /* Search for an already existing solution between path1_node and path2_node */
   if(pathSwitch_verbose_)
     CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"Searching for an already existing solution in the subtree.."<<cnr_logger::RESET());
 
-  ros::WallTime tic_search = ros::WallTime::now();
+  auto tic_search = graph_time::now();
 
   bool search_in_subtree = true;
   double net_time = maxSolverTime(tic,tic_cycle);
 
-  NetPtr net = std::make_shared<Net>(subtree);
+  NetPtr net = std::make_shared<Net>(subtree,logger_);
   std::multimap<double,std::vector<ConnectionPtr>> already_existing_solutions_map = net->getConnectionBetweenNodes(path1_node,path2_node,diff_subpath_cost,
                                                                                                                    black_list,net_time,search_in_subtree);
-  double time_search = (ros::WallTime::now()-tic_search).toSec();
+  double time_search = graph_duration(graph_time::now()-tic_search).count();
 
   if(pathSwitch_verbose_)
     CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"In the subtree exist "<< already_existing_solutions_map.size()
              <<" paths to path2_node (time to search "<<time_search<<" s, max time "<<net_time<<"s )"<<cnr_logger::RESET());
 
-  tic_search = ros::WallTime::now();
+  tic_search = graph_time::now();
   unsigned int number_of_candidates = 0;
   double already_existing_solution_cost;
   std::vector<ConnectionPtr> already_existing_solution_conn;
   if(findValidSolution(already_existing_solutions_map,diff_subpath_cost,already_existing_solution_conn,
                        already_existing_solution_cost,number_of_candidates,false))
   {
-    connecting_path = std::make_shared<Path>(already_existing_solution_conn,metrics_,checker_);
+    connecting_path = std::make_shared<Path>(already_existing_solution_conn,metrics_,checker_,logger_);
     connecting_path->setTree(tree_);
     quickly_solved = true;
 
@@ -936,11 +910,12 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
 
     if(pathSwitch_verbose_)
       CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BOLDYELLOW()<<"A solution with cost "
-               << already_existing_solution_cost<<" has been found in the subtree in "<<(ros::WallTime::now()-tic_search).toSec()
+               << already_existing_solution_cost<<" has been found in the subtree in "<<graph_duration(graph_time::now()-tic_search).count()
                <<" seconds! Making it a solution of the subtree.."<<cnr_logger::RESET());
 
     convertToSubtreeSolution(connecting_path,black_list);
 
+#ifdef ROS_AVAILABLE
     if(pathSwitch_disp_)
     {
       disp_->changeConnectionSize({0.02,0.02,0.02});
@@ -949,6 +924,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
       disp_->clearMarker(connecting_path_id);
       disp_->defaultConnectionSize();
     }
+#endif
 
     return true;
   }
@@ -959,10 +935,10 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
       if(number_of_candidates>0)
         CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<number_of_candidates
                  << " candidate solutions found in the subtree but no one was free (check time "
-                 <<(ros::WallTime::now()-tic_search).toSec()<<" seconds)"<<cnr_logger::RESET());
+                 <<graph_duration(graph_time::now()-tic_search).count()<<" seconds)"<<cnr_logger::RESET());
       else
         CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"No candidate solutions found in the subtree (search time "
-                 <<(ros::WallTime::now()-tic_search).toSec()<<" seconds)"<<cnr_logger::RESET());
+                 <<graph_duration(graph_time::now()-tic_search).count()<<" seconds)"<<cnr_logger::RESET());
     }
 
     //Remove the invalid branches from the subtree
@@ -982,7 +958,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
 
   SamplerPtr sampler = std::make_shared<InformedSampler>(path1_node->getConfiguration(),
                                                          path2_node->getConfiguration(),
-                                                         lb_, ub_,diff_subpath_cost);
+                                                         lb_, ub_,logger_,diff_subpath_cost);
 
   std::vector<NodePtr> subtree_nodes;
   NodePtr path2_node_fake = std::make_shared<Node>(path2_node->getConfiguration());
@@ -992,25 +968,25 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
 
   double solver_time = maxSolverTime(tic,tic_cycle);
   double available_search_time = solver_time;
-  ros::WallTime tic_before_search = ros::WallTime::now();
+  auto tic_before_search = graph_time::now();
 
   while(available_search_time>0)
   {
     solver_->resetProblem();
     solver_->setSampler(sampler);
     solver_->addStart(path1_node);
-    solver_->setStartTree(subtree);
+    solver_->addStartTree(subtree); //after addStart
 
     connecting_path = nullptr;
-    subtree_nodes = subtree->getNodesConst(); //nodes already in the subtree
+    subtree_nodes = subtree->getNodes(); //nodes already in the subtree
 
-    available_search_time = solver_time-(ros::WallTime::now()-tic_before_search).toSec();
+    available_search_time = solver_time-graph_duration(graph_time::now()-tic_before_search).count();
     if(pathSwitch_verbose_)
       CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"Searching for a connecting path...max time: "<<available_search_time<<cnr_logger::RESET());
 
-    ros::WallTime tic_solver = ros::WallTime::now();
+    auto tic_solver = graph_time::now();
     solver_->addGoal(path2_node_fake,available_search_time*0.85);
-    ros::WallTime toc_solver = ros::WallTime::now();
+    auto toc_solver = graph_time::now();
 
     quickly_solved = solver_->solved();
 
@@ -1021,30 +997,30 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
     }
     else
     {
-      available_search_time = solver_time-(ros::WallTime::now()-tic_before_search).toSec();
+      available_search_time = solver_time-graph_duration(graph_time::now()-tic_before_search).count();
 
       if(pathSwitch_verbose_)
       {
-        CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"Direct connection NOT found (time "<<(toc_solver-tic_solver).toSec()<<" s)"<<cnr_logger::RESET());
+        CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"Direct connection NOT found (time "<<graph_duration(toc_solver-tic_solver).count()<<" s)"<<cnr_logger::RESET());
         CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"Solving...max time: "<<available_search_time<<cnr_logger::RESET());
       }
 
-      tic_solver = ros::WallTime::now();
+      tic_solver = graph_time::now();
       solver_has_solved = solver_->solve(connecting_path,10000,available_search_time*0.85);
-      toc_solver = ros::WallTime::now();
+      toc_solver = graph_time::now();
     }
 
     if(solver_has_solved)
     {
       if(pathSwitch_verbose_)
-        CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"Solved in "<<(toc_solver-tic_solver).toSec()
+        CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"Solved in "<<graph_duration(toc_solver-tic_solver).count()
                  <<" s (direct connection to goal: "<<quickly_solved<<")"<<cnr_logger::RESET());
 
       bool subtree_valid = true;
       ConnectionPtr obstructed_connection = nullptr;
       for(const ConnectionPtr& c:connecting_path->getConnections())
       {
-        available_search_time = solver_time-(ros::WallTime::now()-tic_before_search).toSec();
+        available_search_time = solver_time-graph_duration(graph_time::now()-tic_before_search).count();
         if(available_search_time<=0.0)
         {
           subtree_valid = false;
@@ -1132,12 +1108,12 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
     else
     {
       if(pathSwitch_verbose_)
-        CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"Not solved, time: "<<(toc_solver-tic_solver).toSec()<<cnr_logger::RESET());
+        CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"Not solved, time: "<<graph_duration(toc_solver-tic_solver).count()<<cnr_logger::RESET());
 
       break;
     }
 
-    available_search_time = solver_time-(ros::WallTime::now()-tic_before_search).toSec();
+    available_search_time = solver_time-graph_duration(graph_time::now()-tic_before_search).count();
   }
 
   if(valid_connecting_path_found)
@@ -1153,12 +1129,12 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
     double connecting_path_cost;
     std::vector<ConnectionPtr> connecting_path_conn;
 
-    ros::WallTime tic_net = ros::WallTime::now();
+    auto tic_net = graph_time::now();
     std::multimap<double,std::vector<ConnectionPtr>> connecting_paths_map = net->getConnectionBetweenNodes(path1_node,path2_node_fake,diff_subpath_cost,
                                                                                                            black_list,net_time,search_in_subtree);
     if(pathSwitch_verbose_)
       CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::YELLOW()<<"Net search in the subtree found "
-               <<connecting_paths_map.size()<<" solutions in "<<(ros::WallTime::now()-tic_net).toSec()<<" s"<<cnr_logger::RESET());
+               <<connecting_paths_map.size()<<" solutions in "<<graph_duration(graph_time::now()-tic_net).count()<<" s"<<cnr_logger::RESET());
 
     /*To be sure map contains the connecting path computed*/
     double cost = 0.0;
@@ -1184,14 +1160,14 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
         assert(last_conn != nullptr);
         assert(last_conn->getChild() == path2_node_fake);
 
-        ConnectionPtr new_conn= std::make_shared<Connection>(last_conn->getParent(),path2_node,(path2_node->getParentConnectionsSize()>0));
+        ConnectionPtr new_conn= std::make_shared<Connection>(last_conn->getParent(),path2_node,logger_,(path2_node->getParentConnectionsSize()>0));
         new_conn->setCost(last_conn->getCost());
         new_conn->add();
 
         assert(path2_node->getParentConnectionsSize() == 1);
 
         connecting_path_conn.back() = new_conn;
-        connecting_path = std::make_shared<Path>(connecting_path_conn,metrics_,checker_);
+        connecting_path = std::make_shared<Path>(connecting_path_conn,metrics_,checker_,logger_);
         connecting_path->setTree(tree_);
 
         assert(last_conn->isRecentlyChecked());
@@ -1205,6 +1181,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
 
         assert(connecting_path->cost() == std::numeric_limits<double>::infinity() || connecting_path->cost()<diff_subpath_cost);
 
+#ifdef ROS_AVAILABLE
         if(pathSwitch_disp_)
         {
           disp_->changeConnectionSize({0.02,0.02,0.02});
@@ -1213,6 +1190,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
           disp_->clearMarker(connecting_path_id);
           disp_->defaultConnectionSize();
         }
+#endif
 
         if(not((path2_node != tree_->getRoot() && path2_node->getParentConnectionsSize() == 1) ||
                (path2_node == tree_->getRoot() && path2_node->getParentConnectionsSize() == 0)))
@@ -1272,8 +1250,8 @@ bool MARS::pathSwitch(const PathPtr &current_path,
                       const NodePtr &path1_node,
                       PathPtr &new_path)
 {
-  ros::WallTime tic=ros::WallTime::now();
-  ros::WallTime toc, tic_cycle, toc_cycle;
+  auto tic=graph_time::now();
+  graph_time_point toc, tic_cycle, toc_cycle;
 
   (pathSwitch_disp_ == true)?
         (pathSwitch_max_time_ = std::numeric_limits<double>::infinity()):
@@ -1302,8 +1280,10 @@ bool MARS::pathSwitch(const PathPtr &current_path,
     }
   }
 
+#ifdef ROS_AVAILABLE
   int new_node_id;
   std::vector<int> node_id_vector;
+#endif
 
   bool success = false;
   NodePtr path1_node_of_sol, path2_node_of_sol;
@@ -1316,7 +1296,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
 
   for(const ps_goal_ptr& ps_goal:ordered_ps_goals)
   {
-    tic_cycle = ros::WallTime::now();
+    tic_cycle = graph_time::now();
 
     NodePtr path2_node = ps_goal->node;
     PathPtr path2_subpath = ps_goal->subpath;
@@ -1325,7 +1305,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
     remaining_goals--;
 
     if(pathSwitch_disp_ || pathSwitch_verbose_)
-      CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BOLDBUE()<<"path1_node ("<<path1_node<<"): "<<path1_node->getConfiguration().transpose()
+      CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BOLDBLUE()<<"path1_node ("<<path1_node<<"): "<<path1_node->getConfiguration().transpose()
                <<" -> path2_node ("<<path2_node<<"): "<<path2_node->getConfiguration().transpose()<<cnr_logger::RESET());
 
     std::vector<ConnectionPtr> path2_subpath_conn;
@@ -1345,17 +1325,17 @@ bool MARS::pathSwitch(const PathPtr &current_path,
       {
         double better_path2_subpath_cost;
         std::vector<ConnectionPtr> better_path2_subpath_conn;
-        ros::WallTime tic_map = ros::WallTime::now();
+        auto tic_map = graph_time::now();
         std::multimap<double,std::vector<ConnectionPtr>> path2_subpath_map = net_->getConnectionBetweenNodes(path2_node,goal_node_,path2_subpath_cost,{path1_node});
 
-        double search_time = (ros::WallTime::now()-tic_map).toSec();
+        double search_time = graph_duration(graph_time::now()-tic_map).count();
 
-        tic_map = ros::WallTime::now();
+        tic_map = graph_time::now();
         if(findValidSolution(path2_subpath_map,path2_subpath_cost,better_path2_subpath_conn,better_path2_subpath_cost))
         {
           path2_subpath_conn.clear();
           path2_subpath_conn = better_path2_subpath_conn;
-          path2_subpath = std::make_shared<Path>(path2_subpath_conn,metrics_,checker_);
+          path2_subpath = std::make_shared<Path>(path2_subpath_conn,metrics_,checker_,logger_);
           path2_subpath_cost = better_path2_subpath_cost;
 
           assert(better_path2_subpath_cost == path2_subpath->cost());
@@ -1365,7 +1345,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
         }
 
         if(pathSwitch_verbose_)
-          CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"Time to search for a better subpath2: "<<search_time<<", time to check solutions: "<<(ros::WallTime::now()-tic_map).toSec()<<cnr_logger::RESET());
+          CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"Time to search for a better subpath2: "<<search_time<<", time to check solutions: "<<graph_duration(graph_time::now()-tic_map).count()<<cnr_logger::RESET());
       }
     }
 
@@ -1394,8 +1374,10 @@ bool MARS::pathSwitch(const PathPtr &current_path,
                    CNR_INFO(logger_,"path2 contains path1_node: \n"<<*path2_subpath);
                    CNR_INFO(logger_,"curr sol cost: %f, utopia: %f, diff_subpath_cost: %f, cost subpath2: %f",candidate_solution_cost,utopia,diff_subpath_cost,path2_subpath->cost());
 
+             #ifdef ROS_AVAILABLE
                    disp_->displayNode(path1_node);
                    disp_->displayPath(path2_subpath);
+             #endif
 
                    return false;
                  }
@@ -1406,11 +1388,11 @@ bool MARS::pathSwitch(const PathPtr &current_path,
       PathPtr connecting_path;
       bool quickly_solved = false;
 
-      ros::WallTime tic_connecting_path = ros::WallTime::now();
+      auto tic_connecting_path = graph_time::now();
       bool connecting_path_found = computeConnectingPath(path1_node,path2_node,diff_subpath_cost,current_path,tic,tic_cycle,connecting_path,quickly_solved);
 
       if(pathSwitch_verbose_)
-        CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"Time for computing connecting path "<<(ros::WallTime::now()-tic_connecting_path).toSec()<<" s"<<" max ps time "<<(pathSwitch_max_time_-(ros::WallTime::now()-tic).toSec())<<cnr_logger::RESET());
+        CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"Time for computing connecting path "<<graph_duration(graph_time::now()-tic_connecting_path).count()<<" s"<<" max ps time "<<(pathSwitch_max_time_-graph_duration(graph_time::now()-tic).count())<<cnr_logger::RESET());
 
       if(connecting_path_found)
       {
@@ -1433,7 +1415,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
           if(not path2_subpath_conn.empty())
             new_path_conn.insert(new_path_conn.end(),path2_subpath_conn.begin(),path2_subpath_conn.end());
 
-          new_path = std::make_shared<Path>(new_path_conn, metrics_, checker_);
+          new_path = std::make_shared<Path>(new_path_conn, metrics_, checker_, logger_);
           new_path->setTree(tree_);
           assert(new_path->isValid());
 
@@ -1445,6 +1427,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
           success = true;
           an_obstacle_ = false;
 
+#ifdef ROS_AVAILABLE
           if(pathSwitch_disp_)
           {
             disp_->clearMarker(pathSwitch_path_id_);
@@ -1452,12 +1435,14 @@ bool MARS::pathSwitch(const PathPtr &current_path,
             pathSwitch_path_id_ = disp_->displayPath(new_path,"pathplan",ps_marker_color_);
             disp_->defaultConnectionSize();
           }
+#endif
         }
         else
         {
           if(pathSwitch_verbose_ || pathSwitch_disp_)
             CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"It is not a better solution"<<cnr_logger::RESET());
 
+#ifdef ROS_AVAILABLE
           if(pathSwitch_disp_)
           {
             disp_->changeNodeSize(ps_marker_scale_sphere_);
@@ -1466,15 +1451,16 @@ bool MARS::pathSwitch(const PathPtr &current_path,
 
             node_id_vector.push_back(new_node_id);
           }
+#endif
         }
 
-        toc_cycle = ros::WallTime::now();
+        toc_cycle = graph_time::now();
         if(pathSwitch_verbose_)
-          CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BOLDYELLOW()<<"SOLVED->cycle time: "<<(toc_cycle-tic_cycle).toSec()<<cnr_logger::RESET());
+          CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BOLDYELLOW()<<"SOLVED->cycle time: "<<graph_duration(toc_cycle-tic_cycle).count()<<cnr_logger::RESET());
 
         if(not quickly_solved)  // not directly connected, usually it is very fast and it would alterate the mean value
         {
-          time_vector.push_back((toc_cycle-tic_cycle).toSec());
+          time_vector.push_back(graph_duration(toc_cycle-tic_cycle).count());
           pathSwitch_cycle_time_mean_ = std::accumulate(time_vector.begin(), time_vector.end(),0.0)/((double) time_vector.size());
 
           if(pathSwitch_verbose_)
@@ -1486,8 +1472,10 @@ bool MARS::pathSwitch(const PathPtr &current_path,
             CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"cycle time mean not updated"<<cnr_logger::RESET());
         }
 
+#ifdef ROS_AVAILABLE
         if(pathSwitch_disp_)
           disp_->nextButton("Press \"next\" to execute the next PathSwitch step");
+#endif
       }
       else
       {
@@ -1499,6 +1487,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
             CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"cycle time mean increased of 20%: "<<pathSwitch_cycle_time_mean_<<cnr_logger::RESET());
         }
 
+#ifdef ROS_AVAILABLE
         if(pathSwitch_disp_)
         {
           CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"Not solved"<<cnr_logger::RESET());
@@ -1511,6 +1500,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
 
           disp_->nextButton("Press \"next\" to execute the next PathSwitch step");
         }
+#endif
       }
     }
     else
@@ -1518,6 +1508,7 @@ bool MARS::pathSwitch(const PathPtr &current_path,
       if(pathSwitch_verbose_ || pathSwitch_disp_)
         CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"It would not be a better solution"<<cnr_logger::RESET());
 
+#ifdef ROS_AVAILABLE
       if(pathSwitch_disp_)
       {
         disp_->changeNodeSize(ps_marker_scale_sphere_);
@@ -1528,17 +1519,18 @@ bool MARS::pathSwitch(const PathPtr &current_path,
 
         disp_->nextButton("Press \"next\" to execute the next PathSwitch step");
       }
+#endif
     }
 
     if(pathSwitch_verbose_)
     {
-      toc=ros::WallTime::now();
-      time = pathSwitch_max_time_ - (toc-tic).toSec();
+      toc=graph_time::now();
+      time = pathSwitch_max_time_ - graph_duration(toc-tic).count();
       CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"cycle time mean: "<<pathSwitch_cycle_time_mean_<<" -> available time: "<< time<<cnr_logger::RESET());
     }
 
-    toc=ros::WallTime::now();
-    time = pathSwitch_max_time_ - (toc-tic).toSec();
+    toc=graph_time::now();
+    time = pathSwitch_max_time_ - graph_duration(toc-tic).count();
     if((!an_obstacle_ && time<time_percentage_variability_*pathSwitch_cycle_time_mean_ && pathSwitch_cycle_time_mean_ != std::numeric_limits<double>::infinity()) || time<=0.0)  //if there is an obstacle, you should use the entire available time to find a feasible solution
     {
       if(pathSwitch_verbose_)
@@ -1548,19 +1540,21 @@ bool MARS::pathSwitch(const PathPtr &current_path,
     }
 
     if(pathSwitch_verbose_)
-      CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"PathSwitch cycle time: "<<(ros::WallTime::now()-tic_cycle).toSec()<<cnr_logger::RESET());
+      CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"PathSwitch cycle time: "<<graph_duration(graph_time::now()-tic_cycle).count()<<cnr_logger::RESET());
   }
 
   if(pathSwitch_verbose_ || pathSwitch_disp_)
   {
     if(pathSwitch_verbose_)
-      CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"PathSwitch duration: "<<(ros::WallTime::now()-tic).toSec()<<cnr_logger::RESET());
+      CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"PathSwitch duration: "<<graph_duration(graph_time::now()-tic).count()<<cnr_logger::RESET());
 
+#ifdef ROS_AVAILABLE
     if(pathSwitch_disp_)
     {
       for(const int& id_to_delete:node_id_vector)
         disp_->clearMarker(id_to_delete);
     }
+#endif
 
     if(success)
       CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BLUE()<<"PathSwitch has found a solution with cost: " << new_path->cost()<<". path1_node ("<<path1_node_of_sol<<"): "<<path1_node_of_sol->getConfiguration().transpose()<<" -> path2_node ("<<path2_node_of_sol<<"): "<<path2_node_of_sol->getConfiguration().transpose()<<cnr_logger::RESET());
@@ -1632,8 +1626,8 @@ void MARS::clearFlaggedConnections()
 
 bool MARS::informedOnlineReplanning(const double &max_time)
 {
-  ros::WallTime tic=ros::WallTime::now();
-  ros::WallTime toc, tic_cycle, toc_cycle;
+  auto tic=graph_time::now();
+  graph_time_point toc, tic_cycle, toc_cycle;
 
   double MAX_TIME;
   if(informedOnlineReplanning_disp_)
@@ -1656,7 +1650,6 @@ bool MARS::informedOnlineReplanning(const double &max_time)
   bool solved = false;
   bool first_sol = true;
   unsigned int cont = 0;
-  int replanned_path_id;
   double previous_cost;
   double replanned_path_cost = std::numeric_limits<double>::infinity();
 
@@ -1664,12 +1657,16 @@ bool MARS::informedOnlineReplanning(const double &max_time)
   an_obstacle_ = false;
   at_least_a_trial_ = false;
 
+#ifdef ROS_AVAILABLE
+  int replanned_path_id;
+#endif
+
   /* Set the connections of the available paths to recently checked, they don't need a collision check
    * by the replanner because they are checked externally */
   initFlaggedConnections();
 
   /* Add the valid portion of the current path to the set of available paths */
-  int current_conn_idx;
+  size_t current_conn_idx;
   current_path_->findConnection(current_configuration_,current_conn_idx);
 
   admissible_other_paths_.clear();
@@ -1724,6 +1721,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
 
   assert(replanned_path->getTree() == tree_);
 
+#ifdef ROS_AVAILABLE
   if(informedOnlineReplanning_disp_)
   {
     disp_->changeConnectionSize(informed_marker_scale_);
@@ -1731,6 +1729,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
     disp_->defaultConnectionSize();
     disp_->nextButton("Press Next to start searching for a better solution");
   }
+#endif
 
   std::vector<NodePtr> start_node_vector = startNodes(replanned_path->getConnectionsConst());
 
@@ -1739,7 +1738,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
 
   while(j>=0)
   {
-    tic_cycle = ros::WallTime::now();
+    tic_cycle = graph_time::now();
 
     start_node_for_pathSwitch = start_node_vector.at(j);
     assert(start_node_for_pathSwitch->getParentConnectionsSize() == 1);
@@ -1782,18 +1781,20 @@ bool MARS::informedOnlineReplanning(const double &max_time)
              return true;
            }());
 
+#ifdef ROS_AVAILABLE
     if(informedOnlineReplanning_disp_)
     {
       disp_->changeNodeSize(informed_marker_scale_sphere_);
       disp_->displayNode(start_node_for_pathSwitch,"pathplan",informed_marker_color_sphere_);
       disp_->defaultNodeSize();
     }
+#endif
 
     if(pathSwitch_cycle_time_mean_ >= 0.8*max_time)
       pathSwitch_cycle_time_mean_ = std::numeric_limits<double>::infinity();  //reset
 
-    toc = ros::WallTime::now();
-    available_time_ = MAX_TIME - (toc-tic).toSec();
+    toc = graph_time::now();
+    available_time_ = MAX_TIME - graph_duration(toc-tic).count();
 
     double min_time_to_launch_pathSwitch;
     if(informedOnlineReplanning_disp_)
@@ -1829,7 +1830,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
                  for(const NodePtr& n:start_node_vector)
                  {
                    if(n == start_node_for_pathSwitch)
-                   CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BOLDYELLOW()<<n->getConfiguration().transpose()<<" ("<<n<<")"<<<cnr_logger::RESET());
+                   CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BOLDYELLOW()<<n->getConfiguration().transpose()<<" ("<<n<<")"<<cnr_logger::RESET());
                    else
                    CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::BOLDYELLOW()<<n->getConfiguration().transpose()<<" ("<<n<<")"<<cnr_logger::RESET());
                  }
@@ -1887,7 +1888,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
         }
 
         candidate_solution_conn.insert(candidate_solution_conn.end(),new_path->getConnectionsConst().begin(),new_path->getConnectionsConst().end());
-        candidate_solution = std::make_shared<Path>(candidate_solution_conn,metrics_,checker_);
+        candidate_solution = std::make_shared<Path>(candidate_solution_conn,metrics_,checker_,logger_);
         candidate_solution->setTree(tree_);
       }
       else
@@ -1904,8 +1905,8 @@ bool MARS::informedOnlineReplanning(const double &max_time)
 
         if(first_sol)
         {
-          toc = ros::WallTime::now();
-          time_first_sol_ = (toc - tic).toSec();
+          toc = graph_time::now();
+          time_first_sol_ = graph_duration(toc - tic).count();
           time_replanning_ = time_first_sol_;
           first_sol = false;
         }
@@ -1928,6 +1929,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
         success_ = true;
         an_obstacle_ = false;
 
+#ifdef ROS_AVAILABLE
         if(informedOnlineReplanning_disp_)
         {
           disp_->clearMarker(pathSwitch_path_id_);
@@ -1936,9 +1938,10 @@ bool MARS::informedOnlineReplanning(const double &max_time)
           replanned_path_id = disp_->displayPath(replanned_path,"pathplan",informed_marker_color_);
           disp_->defaultConnectionSize();
         }
+#endif
 
-        toc = ros::WallTime::now();
-        if((toc-tic).toSec()>TIME_LIMIT && cont >= CONT_LIMIT)
+        toc = graph_time::now();
+        if(graph_duration(toc-tic).count()>TIME_LIMIT && cont >= CONT_LIMIT)
         {
           j = -1;
           break;
@@ -1953,13 +1956,13 @@ bool MARS::informedOnlineReplanning(const double &max_time)
           CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"NO better path found, cost: " << candidate_solution->cost() <<" previous cost: " << replanned_path_cost<<cnr_logger::RESET());
       }
 
-      toc_cycle = ros::WallTime::now();
+      toc_cycle = graph_time::now();
       if(informedOnlineReplanning_verbose_)
-        CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"Solution with cost "<<replanned_path_cost<<" found!->Informed cycle duration: "<<(toc_cycle-tic_cycle).toSec()<<"\n"<<*replanned_path<<cnr_logger::RESET());
+        CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"Solution with cost "<<replanned_path_cost<<" found!->Informed cycle duration: "<<graph_duration(toc_cycle-tic_cycle).count()<<"\n"<<*replanned_path<<cnr_logger::RESET());
     }
 
-    toc = ros::WallTime::now();
-    available_time_ = MAX_TIME-(toc-tic).toSec();
+    toc = graph_time::now();
+    available_time_ = MAX_TIME-graph_duration(toc-tic).count();
 
     if(j == 0 && (available_time_>=0))
     {
@@ -1975,7 +1978,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
             std::vector<ConnectionPtr> best_replanned_path_conns;
             if(findValidSolution(best_replanned_path_map,replanned_path->cost(),best_replanned_path_conns,best_replanned_path_cost))
             {
-              replanned_path = std::make_shared<Path>(best_replanned_path_conns,metrics_,checker_);
+              replanned_path = std::make_shared<Path>(best_replanned_path_conns,metrics_,checker_,logger_);
               replanned_path->setTree(tree_);
             }
           }
@@ -2007,30 +2010,21 @@ bool MARS::informedOnlineReplanning(const double &max_time)
       }
     }
 
-    toc = ros::WallTime::now();
-    available_time_ = MAX_TIME-(toc-tic).toSec();
+    toc = graph_time::now();
+    available_time_ = MAX_TIME-graph_duration(toc-tic).count();
 
     if(exit || j==0)
     {
       if(informedOnlineReplanning_verbose_ && exit)
         CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"TIME OUT! available time: "<<available_time_<<", time needed for a new cycle: "<<min_time_to_launch_pathSwitch<<cnr_logger::RESET());
 
+#ifdef ROS_AVAILABLE
       if(informedOnlineReplanning_disp_)
       {
         CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"Optimizing..."<<cnr_logger::RESET());
         disp_->nextButton();
       }
-
-      // double cost_pre_opt = replanned_path->cost();
-      // ros::WallTime tic_warp = ros::WallTime::now();
-      // if(success)
-      //   optimizePath(replanned_path,available_time_*0.95);
-      // ros::WallTime toc_warp = ros::WallTime::now();
-      // double cost_opt = replanned_path->cost();
-      //
-      // if(informedOnlineReplanning_verbose_)
-      //   CNR_INFO(logger_,"Path optimization, max time: "<<available_time_<<" time used: "<<(toc_warp-tic_warp).toSec()<<" previous cost: "<<cost_pre_opt<<" new cost: "<<cost_opt);
-
+#endif
       j = -1;
       break;
     }
@@ -2039,8 +2033,11 @@ bool MARS::informedOnlineReplanning(const double &max_time)
 
     if(informedOnlineReplanning_verbose_ || informedOnlineReplanning_disp_)
       CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"------------------------------------------"<<cnr_logger::RESET());
+
+#ifdef ROS_AVAILABLE
     if(informedOnlineReplanning_disp_)
       disp_->nextButton("Press \"next\" to execute the next InformedOnlineReplanning step");
+#endif
 
   } //end while(j>=0) cycle
 
@@ -2052,7 +2049,7 @@ bool MARS::informedOnlineReplanning(const double &max_time)
     assert(std::abs(replanned_path_cost - replanned_path->cost())<1e-06);
 
     double net_search_time;
-    available_time_ = MAX_TIME-(ros::WallTime::now()-tic).toSec();
+    available_time_ = MAX_TIME-graph_duration(graph_time::now()-tic).count();
 
     if(available_time_<=0.0)
       net_search_time = 0.0;
@@ -2064,19 +2061,19 @@ bool MARS::informedOnlineReplanning(const double &max_time)
     if(informedOnlineReplanning_verbose_)
       CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"Time before net search: "<<available_time_<<", max net time: "<<net_search_time<<cnr_logger::RESET());
 
-    ros::WallTime tic_net_search = ros::WallTime::now();
+    auto tic_net_search = graph_time::now();
     std::multimap<double,std::vector<ConnectionPtr>> best_replanned_path_map  =
         net_->getConnectionBetweenNodes(current_node,goal_node_,replanned_path->cost(),{},net_search_time*0.8);
-    ros::WallTime toc_net_search = ros::WallTime::now();
-    if((toc_net_search-tic_net_search).toSec()>net_search_time/0.5 && net_search_time>0.0)
-      throw std::runtime_error("net too much time: "+std::to_string((toc_net_search-tic_net_search).toSec())+ " max time "+std::to_string(net_search_time));
+    auto toc_net_search = graph_time::now();
+    if(graph_duration(toc_net_search-tic_net_search).count()>net_search_time/0.5 && net_search_time>0.0)
+      throw std::runtime_error("net too much time: "+std::to_string(graph_duration(toc_net_search-tic_net_search).count())+ " max time "+std::to_string(net_search_time));
 
     double best_replanned_path_cost;
     std::vector<ConnectionPtr> best_replanned_path_conns;
-    ros::WallTime tic_find_sol = ros::WallTime::now();
+    auto tic_find_sol = graph_time::now();
     if(findValidSolution(best_replanned_path_map,replanned_path->cost(),best_replanned_path_conns,best_replanned_path_cost))
     {
-      replanned_path = std::make_shared<Path>(best_replanned_path_conns,metrics_,checker_);
+      replanned_path = std::make_shared<Path>(best_replanned_path_conns,metrics_,checker_,logger_);
       replanned_path->setTree(tree_);
 
       if(informedOnlineReplanning_verbose_)
@@ -2084,19 +2081,20 @@ bool MARS::informedOnlineReplanning(const double &max_time)
 
       replanned_path_cost = replanned_path->cost();
     }
-    ros::WallTime toc_find_sol = ros::WallTime::now();
+    auto toc_find_sol = graph_time::now();
     assert(replanned_path->cost()<std::numeric_limits<double>::infinity());
     assert(replanned_path->cost()<=subpath1->cost());
 
     if(informedOnlineReplanning_verbose_)
-      CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"At the end of replanning, in the graph there are "<<best_replanned_path_map.size()<<" paths better the one found! (found in "<<(toc_net_search-tic_net_search).toSec()<<" s), time to check solutions "<<(toc_find_sol-tic_find_sol).toSec()<<" s"<<cnr_logger::RESET());
+      CNR_INFO(logger_,cnr_logger::RESET()<<cnr_logger::GREEN()<<"At the end of replanning, in the graph there are "<<best_replanned_path_map.size()<<" paths better the one found! (found in "<<graph_duration(toc_net_search-tic_net_search).count()
+               <<" s), time to check solutions "<<graph_duration(toc_find_sol-tic_find_sol).count()<<" s"<<cnr_logger::RESET());
 
     replanned_path_ = replanned_path;
     assert(replanned_path_->isValid());
     assert(replanned_path_->getTree() == tree_);
 
-    toc = ros::WallTime::now();
-    time_replanning_ = (toc - tic).toSec();
+    toc = graph_time::now();
+    time_replanning_ = graph_duration(toc - tic).count();
 
     if(informedOnlineReplanning_verbose_ || informedOnlineReplanning_disp_)
     {
@@ -2132,15 +2130,15 @@ bool MARS::informedOnlineReplanning(const double &max_time)
   clearFlaggedConnections();
   assert(flagged_connections_.empty());
 
-  toc = ros::WallTime::now();
-  available_time_ = MAX_TIME-(toc-tic).toSec();
+  toc = graph_time::now();
+  available_time_ = MAX_TIME-graph_duration(toc-tic).count();
 
   return success_;
 }
 
 bool MARS::replan()
 {
-  ros::WallTime tic = ros::WallTime::now();
+  auto tic = graph_time::now();
   success_ = false;
 
   if(not checker_->check(current_configuration_))
@@ -2152,7 +2150,7 @@ bool MARS::replan()
     return false;
   }
 
-  int conn_idx;
+  size_t conn_idx;
   ConnectionPtr conn = current_path_->findConnection(current_configuration_,conn_idx);
   NodePtr current_node = current_path_->addNodeAtCurrentConfig(current_configuration_,conn,true,is_a_new_node_);
 
@@ -2194,7 +2192,7 @@ bool MARS::replan()
   //           return true;
   //         }());
 
-  double max_time = max_time_-(tic-ros::WallTime::now()).toSec();
+  double max_time = max_time_-graph_duration(tic-graph_time::now()).count();
   success_ = informedOnlineReplanning(max_time);
 
   assert([&]() ->bool{

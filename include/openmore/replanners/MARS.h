@@ -1,6 +1,6 @@
 #pragma once
 
-#include <replanners_lib/replanners/replanner_base.h>
+#include <openmore/replanners/replanner_base.h>
 #include <graph_core/graph/net.h>
 
 namespace openmore
@@ -69,12 +69,11 @@ protected:
   std::vector<double> informed_marker_scale_sphere_ = {0.03,0.03,0.03   };
   std::vector<double> informed_marker_color_sphere_ = {1.0,0.5,0.0,1.0  };
 
-  std::vector<PathPtr> addAdmissibleCurrentPath(const int &idx_current_conn, PathPtr& admissible_current_path);
+  std::vector<PathPtr> addAdmissibleCurrentPath(const size_t &idx_current_conn, PathPtr& admissible_current_path);
   PathPtr getSubpath1(NodePtr& current_node);
   PathPtr bestExistingSolution(const PathPtr& current_solution);
   PathPtr bestExistingSolution(const PathPtr& current_solution, std::multimap<double, std::vector<ConnectionPtr> > &tmp_map);
-  double maxSolverTime(const ros::WallTime& tic, const ros::WallTime& tic_cycle);
-  void optimizePath(PathPtr &connecting_path, const double &max_time);
+  double maxSolverTime(const graph_time_point& tic, const graph_time_point& tic_cycle);
   void simplifyAdmissibleOtherPaths(const PathPtr& current_solution_path, const NodePtr &start_node, const std::vector<PathPtr>& reset_other_paths);
   bool mergePathToTree(const PathPtr &path);
   void convertToSubtreeSolution(const PathPtr& net_solution, const std::vector<NodePtr>& black_nodes);
@@ -87,7 +86,7 @@ protected:
   virtual void clearFlaggedConnections();
   virtual std::vector<ps_goal_ptr> sortNodes(const NodePtr& node);
   virtual std::vector<NodePtr> startNodes(const std::vector<ConnectionPtr>& subpath1_conn);
-  virtual bool computeConnectingPath(const NodePtr &path1_node_fake, const NodePtr &path2_node, const double &diff_subpath_cost, const PathPtr &current_solution, const ros::WallTime &tic, const ros::WallTime &tic_cycle, PathPtr &connecting_path, bool &quickly_solved);
+  virtual bool computeConnectingPath(const NodePtr &path1_node_fake, const NodePtr &path2_node, const double &diff_subpath_cost, const PathPtr &current_solution, const graph_time_point &tic, const graph_time_point &tic_cycle, PathPtr &connecting_path, bool &quickly_solved);
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -140,7 +139,7 @@ public:
       informedOnlineReplanning_verbose_ = true;
       break;
     default:
-      ROS_ERROR("Verbosity level should be <= 2, set equal to 2");
+      CNR_ERROR(logger_,"Verbosity level should be <= 2, set equal to 2");
       verbose_ = true;
       pathSwitch_verbose_ = true;
       informedOnlineReplanning_verbose_ = true;
@@ -171,7 +170,7 @@ public:
   {
 #ifdef ROS_AVAILABLE
     informedOnlineReplanning_disp_ = verbose;
-#elif
+#else
     informedOnlineReplanning_disp_ = false;
     CNR_WARN(logger_,"ROS is not available, cannot use graph_display");
 #endif
@@ -181,7 +180,7 @@ public:
   {
 #ifdef ROS_AVAILABLE
     pathSwitch_disp_ = verbose;
-#elif
+#else
     pathSwitch_disp_ = false;
     CNR_WARN(logger_,"ROS is not available, cannot use graph_display");
 #endif
@@ -243,8 +242,6 @@ public:
   {
     return shared_from_this();
   }
-
-  bool simplifyReplannedPath(const double& distance);
 
   virtual bool pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, PathPtr &new_path);
   virtual bool informedOnlineReplanning(const double &max_time  = std::numeric_limits<double>::infinity());

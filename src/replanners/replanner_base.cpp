@@ -1,4 +1,4 @@
-#include "replanners_lib/replanners/replanner_base.h"
+#include <openmore/replanners/replanner_base.h>
 
 namespace openmore
 {
@@ -24,6 +24,7 @@ ReplannerBase::ReplannerBase(const Eigen::VectorXd& current_configuration,
 #ifdef ROS_AVAILABLE
   disp_ = nullptr;
 #endif
+
   assert(TOLERANCE>0);
 }
 

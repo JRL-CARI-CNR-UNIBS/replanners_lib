@@ -1,4 +1,4 @@
-﻿#include "replanners_lib/replanners/DRRT.h"
+﻿#include <openmore/replanners/DRRT.h>
 
 namespace openmore
 {
@@ -15,7 +15,7 @@ DynamicRRT::DynamicRRT(Eigen::VectorXd& current_configuration,
 
   if(std::type_index(ti1) != std::type_index(ti2))
   {
-    tmp_solver = std::make_shared<RRT>(solver->getMetrics(), solver->getChecker(), solver->getSampler());
+    tmp_solver = std::make_shared<RRT>(solver->getMetrics(),solver->getChecker(),solver->getSampler(),logger_);
     tmp_solver->importFromSolver(solver); //copy the required fields
   }
   else
@@ -24,7 +24,7 @@ DynamicRRT::DynamicRRT(Eigen::VectorXd& current_configuration,
   }
 
   solver_ = tmp_solver;
-  sampler_ =  std::make_shared<InformedSampler>(lb_,ub_,lb_,ub_);
+  sampler_ =  std::make_shared<InformedSampler>(lb_,ub_,lb_,ub_,logger_);
   tree_is_trimmed_ = false;
 }
 
@@ -50,7 +50,7 @@ void DynamicRRT::fixTree(const NodePtr& node_replan, const NodePtr& root, std::v
       {
         for(unsigned int j=i;j<old_nodes.size();j++)
         {
-          ConnectionPtr conn = std::make_shared<Connection>(old_nodes.at(j-1),old_nodes.at(j));
+          ConnectionPtr conn = std::make_shared<Connection>(old_nodes.at(j-1),old_nodes.at(j),logger_);
           conn->setCost(old_connections_costs.at(j-1));
           conn->add();
 
@@ -86,7 +86,7 @@ void DynamicRRT::fixTree(const NodePtr& node_replan, const NodePtr& root, std::v
       NodePtr parent = node_replan->getParents().front();
       NodePtr child = node_replan->getChildren().front();
 
-      ConnectionPtr conn = std::make_shared<Connection>(parent,child);
+      ConnectionPtr conn = std::make_shared<Connection>(parent,child,logger_);
       double cost = node_replan->parentConnection(0)->getCost()+child->parentConnection(0)->getCost();
       conn->setCost(cost);
       conn->add();
@@ -103,7 +103,7 @@ void DynamicRRT::fixTree(const NodePtr& node_replan, const NodePtr& root, std::v
 
 bool DynamicRRT::trimInvalidTree(NodePtr& node)
 {
-  ros::WallTime tic = ros::WallTime::now();
+  auto tic = graph_time::now();
 
   bool trimmed = false;
   TreePtr tree= current_path_->getTree();
@@ -117,7 +117,7 @@ bool DynamicRRT::trimInvalidTree(NodePtr& node)
   std::vector<ConnectionPtr> node2goal = tree->getConnectionToNode(node); //Note: the root must be the goal (set in regrowRRT())
   for(const ConnectionPtr &conn: node2goal)
   {
-    if((ros::WallTime::now()-tic).toSec()>=max_time_)
+    if(graph_duration(graph_time::now()-tic).count()>=max_time_)
     {
       if(verbose_)
         CNR_INFO(logger_,"Time to trim expired");
@@ -197,7 +197,7 @@ bool DynamicRRT::trimInvalidTree(NodePtr& node)
 
 bool DynamicRRT::regrowRRT(NodePtr& node)
 {
-  ros::WallTime tic = ros::WallTime::now();
+  auto tic = graph_time::now();
 
   //Set the goal as the root
   if(not current_path_->getTree()->changeRoot(goal_node_)) //revert the tree so the goal is the root
@@ -228,7 +228,7 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
   double max_distance = trimmed_tree_->getMaximumDistance();
   assert(max_distance>0.0);
 
-  double time = (ros::WallTime::now()-tic).toSec();
+  double time = graph_duration(graph_time::now()-tic).count();
   while(time<max_time_ && not success_)
   {
     NodePtr new_node;
@@ -241,7 +241,7 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
 
       if((new_node->getConfiguration() - node->getConfiguration()).norm() < max_distance)
       {
-        if(checker_->checkPath(new_node->getConfiguration(), node->getConfiguration()))
+        if(checker_->checkConnection(new_node->getConfiguration(), node->getConfiguration()))
         {
           if(not (node->getParentConnectionsSize() == 0) && not (node->getChildConnectionsSize() == 0))
           {
@@ -249,7 +249,7 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
             assert(0);
           }
 
-          ConnectionPtr conn = std::make_shared<Connection>(new_node, node);
+          ConnectionPtr conn = std::make_shared<Connection>(new_node, node, logger_);
           conn->setCost(metrics_->cost(new_node, node));
           conn->add();
 
@@ -260,7 +260,7 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
 
           //Set the root in the node and extract the new path
           trimmed_tree_->changeRoot(node);
-          replanned_path_ = std::make_shared<Path>(trimmed_tree_->getConnectionToNode(goal_node_), metrics_, checker_);
+          replanned_path_ = std::make_shared<Path>(trimmed_tree_->getConnectionToNode(goal_node_), metrics_, checker_, logger_);
           replanned_path_->setTree(trimmed_tree_);
 
           // SOLUZIONE MOMENTANEA
@@ -270,35 +270,33 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
             {
               if(replanned_path_->getConnections().at(i)->getParent()->getChildConnectionsSize() == 1)
               {
-                ConnectionPtr conn = std::make_shared<Connection>(replanned_path_->getConnections().at(i-1)->getParent(),replanned_path_->getConnections().at(i)->getChild());
+                ConnectionPtr conn = std::make_shared<Connection>(replanned_path_->getConnections().at(i-1)->getParent(),replanned_path_->getConnections().at(i)->getChild(),logger_);
                 double cost = metrics_->cost(replanned_path_->getConnections().at(i-1)->getParent(),replanned_path_->getConnections().at(i)->getChild());
                 conn->setCost(cost);
                 conn->add();
 
                 replanned_path_->getConnections().at(i)->remove();
 
-                replanned_path_ = std::make_shared<Path>(trimmed_tree_->getConnectionToNode(goal_node_), metrics_, checker_);
+                replanned_path_ = std::make_shared<Path>(trimmed_tree_->getConnectionToNode(goal_node_), metrics_, checker_, logger_);
                 break;
               }
               else if(replanned_path_->getConnections().at(i)->getChild()->getChildConnectionsSize() == 1)
               {
-                ConnectionPtr conn = std::make_shared<Connection>(replanned_path_->getConnections().at(i)->getParent(),replanned_path_->getConnections().at(i+1)->getChild());
+                ConnectionPtr conn = std::make_shared<Connection>(replanned_path_->getConnections().at(i)->getParent(),replanned_path_->getConnections().at(i+1)->getChild(),logger_);
                 double cost = metrics_->cost(replanned_path_->getConnections().at(i)->getParent(),replanned_path_->getConnections().at(i+1)->getChild());
                 conn->setCost(cost);
                 conn->add();
 
                 replanned_path_->getConnections().at(i)->remove();
 
-                replanned_path_ = std::make_shared<Path>(trimmed_tree_->getConnectionToNode(goal_node_), metrics_, checker_);
+                replanned_path_ = std::make_shared<Path>(trimmed_tree_->getConnectionToNode(goal_node_), metrics_, checker_, logger_);
                 break;
               }
             }
           }
           // FINO A QUA
 
-          solver_->setStartTree(trimmed_tree_);
-          solver_->setSolution(replanned_path_,true);
-
+          solver_->setSolution(replanned_path_); // set trimmed_tree_ as solver_'s tree
           tree_is_trimmed_ = false;
 
           success_ = true;
@@ -306,7 +304,7 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
         }
       }
     }
-    time = (ros::WallTime::now()-tic).toSec();
+    time = graph_duration(graph_time::now()-tic).count();
   }
 
   return success_;

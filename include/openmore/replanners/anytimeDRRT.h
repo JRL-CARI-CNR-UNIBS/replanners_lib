@@ -1,6 +1,6 @@
 #pragma once
 
-#include <replanners_lib/replanners/DRRT.h>
+#include <openmore/replanners/DRRT.h>
 #include <graph_core/solvers/anytime_rrt.h>
 
 //Anytime, Dynamic Planning in High-dimensional Search Spaces
@@ -20,12 +20,10 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   AnytimeDynamicRRT(Eigen::VectorXd& current_configuration,
-                    PathPtr& current_path,
-                    const double& max_time,
+                    PathPtr& current_path, const double& max_time,
                     const TreeSolverPtr &solver, const cnr_logger::TraceLoggerPtr &logger);
 
   bool replan() override;
 };
 }
 
-#endif // ANYTIMEDRRT_H
