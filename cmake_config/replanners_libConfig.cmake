@@ -5,7 +5,7 @@ find_dependency(cnr_logger REQUIRED)
 find_dependency(cnr_param REQUIRED)
 find_dependency(cnr_class_loader REQUIRED)
 
-if(ROS_DISPLAY_DEBUG)
+if(USE_GRAPH_DISPLAY)
     find_dependency(graph_display REQUIRED)
 endif()
 
