@@ -743,7 +743,7 @@ PathPtr MARS::bestExistingSolution(const PathPtr& current_solution, std::multima
     int n_sol = 0;
     for(const std::pair<double,std::vector<ConnectionPtr>> &solution_pair:tmp_map)
     {
-      PathPtr disp_path = std::make_shared<Path>(solution_pair.second,metrics_,checker_);
+      PathPtr disp_path = std::make_shared<Path>(solution_pair.second,metrics_,checker_,logger_);
 
       n_sol++;
       id = disp_->displayPath(disp_path);
