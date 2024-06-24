@@ -32,18 +32,20 @@ set(DEPS
 
 ###### If ROS is available include graph_display (for debugging) ######
 option(USE_GRAPH_DISPLAY "'graph_display' SUPPORT" ON)
+set(SET_GRAPH_DISPLAY_AVAILABLE OFF)
 
-if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}" STREQUAL "2")) 
+if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}" STREQUAL "2"))
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(graph_display graph_display IMPORTED_TARGET)
-  
+
   if(graph_display_FOUND)
     message("ROS VERSION AVAILABLE: $ENV{ROS_VERSION} -> INCLUDING 'graph_display'")
     list(APPEND DEPS PkgConfig::graph_display)
-    add_compile_definitions(GRAPH_DISPLAY_AVAILABLE)
+    set(SET_GRAPH_DISPLAY_AVAILABLE ON)
   else()
     message(WARNING "'graph_display' not found, setting GRAPH_DISPLAY_AVAILABLE to false")
   endif()
+
 endif()
 ########################################################################
 
@@ -58,6 +60,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${DEPS})
+
+if(SET_GRAPH_DISPLAY_AVAILABLE)
+   target_compile_definitions(${PROJECT_NAME} PUBLIC GRAPH_DISPLAY_AVAILABLE)
+endif()
 
 add_library("${PROJECT_NAME}::${PROJECT_NAME}" ALIAS ${PROJECT_NAME})
 

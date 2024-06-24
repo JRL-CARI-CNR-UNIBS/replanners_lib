@@ -25,6 +25,8 @@ ReplannerBase::ReplannerBase(const Eigen::VectorXd& current_configuration,
   disp_ = nullptr;
 #endif
 
+  disp_ = nullptr;
+
   assert(TOLERANCE>0);
 }
 
