@@ -25,9 +25,15 @@ make -C build/replanners_lib install
 Then add the path to the install folder in the `.bashrc` file so that other packages will be able to find it:
 
 ```bash
-export PATH="$HOME/replanners_lib_ws/install/bin:$PATH"
-export LD_LIBRARY_PATH="$HOME/replanners_lib_ws/install/lib:$LD_LIBRARY_PATH"
-export CMAKE_PREFIX_PATH="$HOME/replanners_lib_ws/install:$CMAKE_PREFIX_PATH"
+if [[ ":$PATH:" != *":$HOME/replanners_lib_ws/install/bin:"* ]]; then
+    export PATH="$HOME/replanners_lib_ws/install/bin:$PATH"
+fi
+if [[ ":$LD_LIBRARY_PATH:" != *":$HOME/replanners_lib_ws/install/lib:"* ]]; then
+    export LD_LIBRARY_PATH="$HOME/replanners_lib_ws/install/lib:$LD_LIBRARY_PATH"
+fi
+if [[ ":$CMAKE_PREFIX_PATH:" != *":$HOME/replanners_lib_ws/install:"* ]]; then
+    export CMAKE_PREFIX_PATH="$HOME/replanners_lib_ws/install:$CMAKE_PREFIX_PATH"
+fi
 ```
 
 ## ROS Compatibility
