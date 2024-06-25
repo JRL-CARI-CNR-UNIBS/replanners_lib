@@ -109,7 +109,7 @@ bool DynamicRRT::trimInvalidTree(NodePtr& node)
   TreePtr tree= current_path_->getTree();
 
   NodePtr child;
-  unsigned int removed_nodes;      //will not be used;
+  unsigned int removed_nodes = 0;      //will not be used;
   std::vector<NodePtr> white_list; //will not be used;
 
   //Firstly trim the tree starting from the path to node
@@ -166,8 +166,6 @@ bool DynamicRRT::trimInvalidTree(NodePtr& node)
     std::vector<ConnectionPtr> path_connections;
 
     tree->getLeaves(leaves);
-    assert(not leaves.empty());
-
     for(const NodePtr& leave:leaves)
     {
       if(not tree->checkPathToNode(leave,checked_connections_,path_connections))
