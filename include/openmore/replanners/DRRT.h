@@ -15,6 +15,7 @@ namespace openmore
 /**
  * @class DynamicRRT
  * @brief Class for dynamic replanning using Rapidly-exploring Random Trees (RRT).
+ * The algorithm replans from the goal to a given node by trimming the invalid part of the tree and then restarting its growth to find a new valid solution.
  */
 class DynamicRRT;
 typedef std::shared_ptr<DynamicRRT> DynamicRRTPtr;
