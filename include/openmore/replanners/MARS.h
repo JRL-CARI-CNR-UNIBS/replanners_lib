@@ -3,6 +3,11 @@
 #include <openmore/replanners/replanner_base.h>
 #include <graph_core/graph/net.h>
 
+/**
+ * @file MARS.h
+ * @brief From the paper Anytime Informed Multi-Path Replanning Strategy for Complex Environments (https://ieeexplore.ieee.org/abstract/document/10013661).
+ */
+
 namespace openmore
 {
 
@@ -25,6 +30,17 @@ struct invalid_connection
 };
 typedef std::shared_ptr<invalid_connection> invalid_connection_ptr;
 
+
+/**
+ * @class MARS
+ * @brief Class for multi-path replanning in high-dimensional search spaces.
+ *
+ * The algorithm replans by exploiting a set of pre-computed paths from the same start to the same goal,
+ * and improves the solution over time. It searches for paths connecting the nodes of the current path
+ * to the nodes of other available paths using subtrees, informed sets, and lazy collision checking.
+ * Once a connecting path is found, the solution is obtained by concatenating the subpath from the
+ * destination node to the goal. This procedure is continuously repeated to find better solutions.
+ */
 class MARS;
 typedef std::shared_ptr<MARS> MARSPtr;
 
@@ -112,7 +128,7 @@ public:
     return other_paths_;
   }
 
-  void setVerbosity(const bool& verbose)
+  void setVerbosity(const bool& verbose) override
   {
     verbose_ = verbose;
     informedOnlineReplanning_verbose_ = verbose;

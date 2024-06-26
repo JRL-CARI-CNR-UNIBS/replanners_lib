@@ -8,11 +8,12 @@ DynamicRRT::DynamicRRT(Eigen::VectorXd& current_configuration,
                        const TreeSolverPtr &solver,
                        const cnr_logger::TraceLoggerPtr& logger): ReplannerBase(current_configuration,current_path,max_time,solver,logger)
 {
+
+  // Solver must be RRT
   const std::type_info& ti1 = typeid(RRT);
   const std::type_info& ti2 = typeid(*solver);
 
   RRTPtr tmp_solver;
-
   if(std::type_index(ti1) != std::type_index(ti2))
   {
     tmp_solver = std::make_shared<RRT>(solver->getMetrics(),solver->getChecker(),solver->getSampler(),logger_);
@@ -22,9 +23,10 @@ DynamicRRT::DynamicRRT(Eigen::VectorXd& current_configuration,
   {
     tmp_solver = std::static_pointer_cast<RRT>(solver);
   }
-
   solver_ = tmp_solver;
-  sampler_ =  std::make_shared<InformedSampler>(lb_,ub_,lb_,ub_,logger_);
+
+  // Search the entire space when rebuilding the tree
+  sampler_ =  std::make_shared<InformedSampler>(lb_,ub_,lb_,ub_,logger_,std::numeric_limits<double>::infinity());
   tree_is_trimmed_ = false;
 }
 
@@ -33,7 +35,7 @@ void DynamicRRT::fixTree(const NodePtr& node_replan, const NodePtr& root, std::v
   if(success_)
     return;
 
-  if(tree_is_trimmed_) //rebuild the tree adding the old path as a branch
+  if(tree_is_trimmed_) //rebuild the tree adding the old path (old_nodes and old_connections_costs) as a branch
   {
     std::reverse(old_nodes.begin(),old_nodes.end());  //to sort the nodes from goal to start
     std::reverse(old_connections_costs.begin(),old_connections_costs.end());
@@ -109,7 +111,7 @@ bool DynamicRRT::trimInvalidTree(NodePtr& node)
   TreePtr tree= current_path_->getTree();
 
   NodePtr child;
-  unsigned int removed_nodes = 0;      //will not be used;
+  unsigned int removed_nodes = 0;  //will not be used;
   std::vector<NodePtr> white_list; //will not be used;
 
   //Firstly trim the tree starting from the path to node
@@ -209,7 +211,7 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
 
   if(not tree_is_trimmed_)
   {
-    //Trim the tree
+    //Trim the invalid parts of the tree
     if(not trimInvalidTree(node))
     {
       if(verbose_)
@@ -229,6 +231,8 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
   double time = graph_duration(graph_time::now()-tic).count();
   while(time<max_time_ && not success_)
   {
+    assert(sampler_->getCost() == std::numeric_limits<double>::infinity()); //consider the entire search space
+
     NodePtr new_node;
     Eigen::VectorXd conf = sampler_->sample();
     if(trimmed_tree_->extend(conf,new_node))

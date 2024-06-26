@@ -24,7 +24,7 @@ DynamicRRTStar::DynamicRRTStar(Eigen::VectorXd& current_configuration,
   solver_ = tmp_solver;
 }
 
-bool DynamicRRTStar::nodeBeforeObs(const PathPtr& subpath, NodePtr& node_before)
+bool DynamicRRTStar:: nodeBeforeObs(const PathPtr& subpath, NodePtr& node_before)
 {
   for(const ConnectionPtr& c:subpath->getConnectionsConst())
   {

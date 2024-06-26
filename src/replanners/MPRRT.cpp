@@ -10,6 +10,7 @@ MPRRT::MPRRT(Eigen::VectorXd& current_configuration,
              const cnr_logger::TraceLoggerPtr& logger,
              const unsigned int& number_of_parallel_plannings): ReplannerBase(current_configuration,current_path,max_time,solver,logger)
 {
+  // Solver should be RRT
   const std::type_info& ti1 = typeid(RRT);
   const std::type_info& ti2 = typeid(*solver);
 
@@ -35,11 +36,7 @@ MPRRT::MPRRT(Eigen::VectorXd& current_configuration,
   solver_vector_.clear();
   for(unsigned int i=0;i<number_of_parallel_plannings_;i++)
   {
-    SamplerPtr sampler = std::make_shared<InformedSampler>(lb_,ub_,lb_,ub_,logger_);
-    MetricsPtr metrics = metrics_->clone();
-
-    CollisionCheckerPtr checker = checker_->clone();
-    RRTPtr sv = std::make_shared<RRT>(metrics,checker,sampler,logger_);
+    RRTPtr sv = std::make_shared<RRT>(metrics_->clone(),checker_->clone(),solver_->getSampler(),logger_); //solver will be overwritten
     sv->importFromSolver(solver_);
 
     solver_vector_.push_back(sv);
@@ -63,6 +60,7 @@ bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf,
   int iter = 0;
   double time;
 
+  // Compute RRT from replan configuration to goal configuration and save the best solution for this thread
   do
   {
     iter++;
@@ -91,9 +89,7 @@ bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf,
     }
   } while((0.98*max_time_-graph_duration(graph_time::now()-tic).count())>0.0);
 
-  mtx_.lock();
   connecting_path_vector_.at(index) = best_solution;
-  mtx_.unlock();
 
   double cost;
   success?
@@ -126,6 +122,7 @@ bool MPRRT::connect2goal(const NodePtr& node)
       CNR_WARN(logger_,"Current path obstructed");
   }
 
+  // Launch multiple parallel RRTs
   for(unsigned int i=0; i<number_of_parallel_plannings_;i++)
   {
     int index = i;
@@ -141,6 +138,7 @@ bool MPRRT::connect2goal(const NodePtr& node)
   unsigned int idx_best_sol = -1;
   double best_cost = std::numeric_limits<double>::infinity();
 
+  // Retrieve the best solution found
   for(unsigned int i=0; i<number_of_parallel_plannings_;i++)
   {
     if(futures.at(i).get())
@@ -161,13 +159,14 @@ bool MPRRT::connect2goal(const NodePtr& node)
 
 #ifdef GRAPH_DISPLAY_AVAILABLE
       if(verbose_ && disp_)
-        disp_->displayPath(connecting_path_vector_.at(i),"pathplan",marker_color);
+        disp_->displayPath(connecting_path_vector_.at(i),"graph_display",marker_color);
 #endif
     }
   }
 
   if(solved)
   {
+    // Set first and last nodes of the solution as the replanning and goal nodes (currently, they are the same configurations but different pointers)
     std::vector<ConnectionPtr>  connecting_path_conn = connecting_path_vector_.at(idx_best_sol)->getConnections();
     PathPtr new_path = concatWithNewPathToGoal(connecting_path_conn, node);
     replanned_path_ = new_path;
