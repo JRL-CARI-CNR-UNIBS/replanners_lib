@@ -29,6 +29,8 @@ set(DEPS
     cnr_param::cnr_param
     cnr_class_loader::cnr_class_loader
 )
+set(PRIVATE_DEPS
+)
 
 ###### If ROS is available include graph_display (for debugging) ######
 option(USE_GRAPH_DISPLAY "'graph_display' SUPPORT" ON)
@@ -40,7 +42,7 @@ if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}
 
   if(graph_display_FOUND)
     message("ROS VERSION AVAILABLE: $ENV{ROS_VERSION} -> INCLUDING 'graph_display'")
-    list(APPEND DEPS PkgConfig::graph_display)
+    list(APPEND PRIVATE_DEPS PkgConfig::graph_display)
     set(SET_GRAPH_DISPLAY_AVAILABLE ON)
   else()
     message(WARNING "'graph_display' not found, setting GRAPH_DISPLAY_AVAILABLE to false")
@@ -59,7 +61,11 @@ add_library(${PROJECT_NAME} SHARED
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${DEPS})
+target_link_libraries(${PROJECT_NAME} 
+PUBLIC ${DEPS}
+PRIVATE ${PRIVATE_DEPS}
+
+)
 
 if(SET_GRAPH_DISPLAY_AVAILABLE)
    target_compile_definitions(${PROJECT_NAME} PUBLIC GRAPH_DISPLAY_AVAILABLE)
