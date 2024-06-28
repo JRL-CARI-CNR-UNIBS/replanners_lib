@@ -6,7 +6,7 @@ DynamicRRTStar::DynamicRRTStar(Eigen::VectorXd& current_configuration,
                                PathPtr& current_path,
                                const double& max_time,
                                const TreeSolverPtr &solver,
-                               const cnr_logger::TraceLoggerPtr& logger): ReplannerBase(current_configuration,current_path,max_time,solver,logger)
+                               const TraceLoggerPtr& logger): ReplannerBase(current_configuration,current_path,max_time,solver,logger)
 {
   const std::type_info& ti1 = typeid(RRTStar);
   const std::type_info& ti2 = typeid(*solver);

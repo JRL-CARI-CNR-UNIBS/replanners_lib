@@ -89,7 +89,7 @@ protected:
   /**
    * @brief Logger for tracing.
    */
-  cnr_logger::TraceLoggerPtr logger_;
+  TraceLoggerPtr logger_;
 
 #ifdef GRAPH_DISPLAY_AVAILABLE
   /**
@@ -115,7 +115,7 @@ public:
                 const PathPtr &current_path,
                 const double &max_time,
                 const TreeSolverPtr& solver,
-                const cnr_logger::TraceLoggerPtr &logger);
+                const TraceLoggerPtr &logger);
   /**
    * @brief Destructor for ReplannerBase.
    */

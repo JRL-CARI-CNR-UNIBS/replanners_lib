@@ -7,7 +7,7 @@ MPRRT::MPRRT(Eigen::VectorXd& current_configuration,
              PathPtr& current_path,
              const double& max_time,
              const TreeSolverPtr& solver,
-             const cnr_logger::TraceLoggerPtr& logger,
+             const TraceLoggerPtr& logger,
              const unsigned int& number_of_parallel_plannings): ReplannerBase(current_configuration,current_path,max_time,solver,logger)
 {
   // Solver should be RRT

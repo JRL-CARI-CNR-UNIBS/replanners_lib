@@ -6,7 +6,7 @@ ReplannerBase::ReplannerBase(const Eigen::VectorXd& current_configuration,
                              const PathPtr& current_path,
                              const double& max_time,
                              const TreeSolverPtr &solver,
-                             const cnr_logger::TraceLoggerPtr& logger):
+                             const TraceLoggerPtr& logger):
   current_configuration_(current_configuration),
   current_path_(current_path),
   replanned_path_(current_path),

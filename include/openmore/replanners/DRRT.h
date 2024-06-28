@@ -115,7 +115,7 @@ public:
              PathPtr& current_path,
              const double& max_time,
              const TreeSolverPtr &solver,
-             const cnr_logger::TraceLoggerPtr &logger);
+             const TraceLoggerPtr &logger);
 
   /**
    * @brief Gets the status of whether the tree is trimmed.

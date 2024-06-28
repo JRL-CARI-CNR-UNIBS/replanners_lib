@@ -110,12 +110,12 @@ public:
   MARS(const Eigen::VectorXd& current_configuration,
        const PathPtr& current_path,
        const double& max_time,
-       const TreeSolverPtr &solver, const cnr_logger::TraceLoggerPtr &logger);
+       const TreeSolverPtr &solver, const TraceLoggerPtr &logger);
 
   MARS(const Eigen::VectorXd& current_configuration,
        const PathPtr& current_path,
        const double& max_time,
-       const TreeSolverPtr &solver, const cnr_logger::TraceLoggerPtr &logger,
+       const TreeSolverPtr &solver, const TraceLoggerPtr &logger,
        const std::vector<PathPtr> &other_paths);
 
   NetPtr getNet()

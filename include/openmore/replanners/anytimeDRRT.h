@@ -54,7 +54,7 @@ public:
    */
   AnytimeDynamicRRT(Eigen::VectorXd& current_configuration,
                     PathPtr& current_path, const double& max_time,
-                    const TreeSolverPtr &solver, const cnr_logger::TraceLoggerPtr &logger);
+                    const TreeSolverPtr &solver, const TraceLoggerPtr &logger);
 
   /**
    * @brief Execute the replanning algorithm with anytime improvements.

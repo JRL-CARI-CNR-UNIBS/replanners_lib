@@ -102,7 +102,7 @@ public:
         PathPtr& current_path,
         const double& max_time,
         const TreeSolverPtr& solver,
-        const cnr_logger::TraceLoggerPtr &logger,
+        const TraceLoggerPtr &logger,
         const unsigned int& number_of_parallel_plannings = 1);
 
   /**

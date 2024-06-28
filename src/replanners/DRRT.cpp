@@ -6,7 +6,7 @@ DynamicRRT::DynamicRRT(Eigen::VectorXd& current_configuration,
                        PathPtr& current_path,
                        const double& max_time,
                        const TreeSolverPtr &solver,
-                       const cnr_logger::TraceLoggerPtr& logger): ReplannerBase(current_configuration,current_path,max_time,solver,logger)
+                       const TraceLoggerPtr& logger): ReplannerBase(current_configuration,current_path,max_time,solver,logger)
 {
 
   // Solver must be RRT
