@@ -1,0 +1,5 @@
+#pragma once
+
+#cmakedefine GRAPH_DISPLAY_AVAILABLE @GRAPH_DISPLAY_AVAILABLE@
+
+

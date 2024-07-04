@@ -1,6 +1,6 @@
 #pragma once
 
-#include <openmore/replanners/utils.h>
+#include <openmore/replanners/util/utils.h>
 
 namespace openmore
 {

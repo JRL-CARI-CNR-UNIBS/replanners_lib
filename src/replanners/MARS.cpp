@@ -408,7 +408,7 @@ std::vector<ps_goal_ptr> MARS::sortNodes(const NodePtr& start_node)
               goal_node_considered = true;
 
             if(pathSwitch_verbose_)
-              CNR_INFO(logger_,RESET()<<RED()<<"node removed from Q2 list: "<<n<<RED());
+              CNR_INFO(logger_,RESET()<<RED()<<"node removed from Q2 list: "<<n<<RESET());
 
             continue;
           }
