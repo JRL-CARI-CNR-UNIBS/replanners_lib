@@ -37,16 +37,16 @@ set(PRIVATE_DEPS
 option(USE_GRAPH_DISPLAY "'graph_display' SUPPORT" ON)
 
 if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}" STREQUAL "2"))
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(graph_display graph_display IMPORTED_TARGET)
+ find_package(PkgConfig REQUIRED)
+ pkg_check_modules(graph_display graph_display IMPORTED_TARGET)
 
-  if(graph_display_FOUND)
-    message("ROS VERSION AVAILABLE: $ENV{ROS_VERSION} -> INCLUDING 'graph_display'")
-    list(APPEND PRIVATE_DEPS PkgConfig::graph_display)
-    set(GRAPH_DISPLAY_AVAILABLE ON)
-  else()
-    message(WARNING "'graph_display' not found, setting GRAPH_DISPLAY_AVAILABLE to false")
-  endif()
+ if(graph_display_FOUND)
+   message("ROS VERSION AVAILABLE: $ENV{ROS_VERSION} -> INCLUDING 'graph_display'")
+   list(APPEND PRIVATE_DEPS PkgConfig::graph_display)
+   set(GRAPH_DISPLAY_AVAILABLE ON)
+ else()
+   message(WARNING "'graph_display' not found, setting GRAPH_DISPLAY_AVAILABLE to false")
+ endif()
 endif()
 ########################################################################
 
@@ -93,10 +93,6 @@ write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Conf
   VERSION 0.0.1
   COMPATIBILITY AnyNewerVersion)
 
-#configure_package_config_file(
-#  ${CMAKE_SOURCE_DIR}/cmake_config/${PROJECT_NAME}Config.cmake.in ${CMAKE_SOURCE_DIR}/cmake_config/${PROJECT_NAME}Config.cmake
-#  INSTALL_DESTINATION ${CMAKE_SOURCE_DIR}/cmake_config/
-#  )
 configure_file("${CMAKE_SOURCE_DIR}/cmake_config/${PROJECT_NAME}Config.cmake.in"
                "${CMAKE_SOURCE_DIR}/cmake_config/${PROJECT_NAME}Config.cmake" @ONLY)
 
