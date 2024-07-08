@@ -1,3 +1,5 @@
+@PACKAGE_INIT@
+
 include(CMakeFindDependencyMacro)
 
 find_dependency(graph_core REQUIRED)
@@ -11,6 +13,7 @@ if(@GRAPH_DISPLAY_AVAILABLE@)
   find_dependency(graph_display REQUIRED)
 endif()
 
-set(replanners_lib_LIBRARIES replanners_lib)
-set(replanners_lib_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
-set(replanners_lib_FOUND True)
+set_and_check(@PROJECT_NAME@_INCLUDE_DIRS "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@" ${graph_core_INCLUDE_DIRS} ${cnr_logger_INCLUDE_DIRS} ${cnr_param_INCLUDE_DIRS} ${cnr_class_loader_INCLUDE_DIRS})
+set(@PROJECT_NAME@_LIBRARIES @PROJECT_NAME@ ${graph_core_LIBRARIES} ${cnr_logger_LIBRARIES} ${cnr_param_LIBRARIES} ${cnr_class_loader_LIBRARIES})
+
+check_required_components(@PROJECT_NAME@)
