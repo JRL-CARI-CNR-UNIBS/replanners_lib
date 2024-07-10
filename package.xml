@@ -18,9 +18,6 @@
 
   <depend condition="$ROS_VERSION != ''">graph_display</depend>
 
-  <depend>cnr_param</depend>
-  <depend>cnr_logger</depend>
-  <depend>cnr_class_loader</depend>
   <depend>graph_core</depend>
 
   <export>

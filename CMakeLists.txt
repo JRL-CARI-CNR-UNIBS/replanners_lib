@@ -18,16 +18,9 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(cnr_param REQUIRED)
-find_package(cnr_logger REQUIRED)
 find_package(graph_core REQUIRED)
-find_package(cnr_class_loader REQUIRED)
-
 set(DEPS
   graph_core::graph_core
-  cnr_logger::cnr_logger
-  cnr_param::cnr_param
-  cnr_class_loader::cnr_class_loader
   )
 set(PRIVATE_DEPS
   )
