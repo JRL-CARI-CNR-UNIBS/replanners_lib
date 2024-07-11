@@ -18,7 +18,7 @@ MPRRT::MPRRT(Eigen::VectorXd& current_configuration,
 
   if(std::type_index(ti1) != std::type_index(ti2))
   {
-    tmp_solver = std::make_shared<RRT>(solver->getMetrics(), solver->getChecker(), solver->getSampler(), logger);
+    tmp_solver = std::make_shared<RRT>(solver->getMetrics(),solver->getChecker(),solver->getSampler(),logger);
     tmp_solver->importFromSolver(solver); //copy the required fields
   }
   else
@@ -207,8 +207,8 @@ PathPtr MPRRT::concatWithNewPathToGoal(const std::vector<ConnectionPtr>& connect
     NodePtr node1 = connecting_path_conn.front()->getChild();
     NodePtr node2 = connecting_path_conn.back()->getParent();
 
-    ConnectionPtr conn1 = std::make_shared<Connection>(path1_node,node1,logger_,false);
-    ConnectionPtr conn2 = std::make_shared<Connection>(node2,path2_node,logger_,false);
+    ConnectionPtr conn1 = std::make_shared<Connection>(path1_node,node1,logger_);
+    ConnectionPtr conn2 = std::make_shared<Connection>(node2,path2_node,logger_);
 
     conn1->setCost(connecting_path_conn.front()->getCost());
     conn2->setCost(connecting_path_conn.back()->getCost());
@@ -228,7 +228,7 @@ PathPtr MPRRT::concatWithNewPathToGoal(const std::vector<ConnectionPtr>& connect
   }
   else
   {
-    ConnectionPtr conn1 = std::make_shared<Connection>(path1_node,path2_node,logger_,false);
+    ConnectionPtr conn1 = std::make_shared<Connection>(path1_node,path2_node,logger_);
     conn1->setCost(connecting_path_conn.front()->getCost());
     conn1->add();
 
@@ -247,7 +247,9 @@ bool MPRRT::computeConnectingPath(const NodePtr &path1_node_fake,
                                   bool &directly_connected,
                                   TreeSolverPtr& solver)
 {
-  SamplerPtr sampler = std::make_shared<InformedSampler>(path1_node_fake->getConfiguration(), path2_node_fake->getConfiguration(), lb_, ub_,logger_,current_solution_cost);
+  SamplerPtr sampler = std::make_shared<InformedSampler>(path1_node_fake->getConfiguration(),
+                                                         path2_node_fake->getConfiguration(),
+                                                         lb_,ub_,logger_,current_solution_cost);
 
   solver->setSampler(sampler);
   solver->resetProblem();

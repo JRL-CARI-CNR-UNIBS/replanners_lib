@@ -34,7 +34,7 @@ bool AnytimeDynamicRRT::improvePath(NodePtr &node, const double& max_time)
 
   bool success = false;
 
-  AnytimeRRTPtr forced_cast_solver = std::static_pointer_cast<AnytimeRRT>(solver_);  //solver_ is of type AnytimeRRT (see constructor)
+  AnytimeRRTPtr forced_cast_solver = std::static_pointer_cast<AnytimeRRT>(solver_); //solver_ is of type AnytimeRRT (see constructor)
 
   if(replanned_path_)
   {
@@ -56,8 +56,11 @@ bool AnytimeDynamicRRT::improvePath(NodePtr &node, const double& max_time)
 
   double imprv = forced_cast_solver->getCostImpr();
   double path_cost = solver_->getSolution()->getCostFromConf(node->getConfiguration());
-  assert(path_cost == solver_->getSolution()->cost()); // node is the start node
-//  forced_cast_solver->setPathCost(path_cost); //CHECK!!!
+
+  InformedSamplerPtr informed_sampler = std::make_shared<InformedSampler>(node->getConfiguration(),goal_node_->getConfiguration(),lb_,ub_,logger_,path_cost);
+  forced_cast_solver->setSampler(informed_sampler);
+
+  //  forced_cast_solver->setPathCost(path_cost); //CHECK!!!
 
   int n_fail = 0;
   PathPtr solution;

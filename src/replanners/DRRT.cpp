@@ -26,7 +26,7 @@ DynamicRRT::DynamicRRT(Eigen::VectorXd& current_configuration,
   solver_ = tmp_solver;
 
   // Search the entire space when rebuilding the tree
-  sampler_ =  std::make_shared<InformedSampler>(lb_,ub_,lb_,ub_,logger_,std::numeric_limits<double>::infinity());
+  sampler_ = std::make_shared<UniformSampler>(lb_,ub_,logger_);
   solver_->setSampler(sampler_);
   tree_is_trimmed_ = false;
 }
@@ -232,8 +232,6 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
   double time = graph_duration(graph_time::now()-tic).count();
   while(time<max_time_ && not success_)
   {
-    assert(sampler_->getCost() == std::numeric_limits<double>::infinity()); //consider the entire search space
-
     NodePtr new_node;
     Eigen::VectorXd conf = sampler_->sample();
     if(trimmed_tree_->extend(conf,new_node))
@@ -296,7 +294,6 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
 //          // FINO A QUA
 
           solver_->setSolution(replanned_path_); // set trimmed_tree_ as solver_'s tree
-          sampler_->setCost(std::numeric_limits<double>::infinity());
           tree_is_trimmed_ = false;
 
           success_ = true;
@@ -352,6 +349,8 @@ bool DynamicRRT::replan(const double& cost_from_conf)
     checked_connections_.clear();
     checked_connections_ = current_path_->getSubpathFromNode(node_replan_)->getConnections();
     std::for_each(checked_connections_.begin(),checked_connections_.end(),[&](ConnectionPtr c) {c->setRecentlyChecked(true);});
+
+    solver_->setSampler(sampler_); //the uniform sampler
 
     if(not regrowRRT(node_replan_)) //root is goal
     {

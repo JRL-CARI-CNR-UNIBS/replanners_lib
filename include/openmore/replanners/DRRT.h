@@ -1,5 +1,6 @@
 #pragma once
 
+#include <graph_core/samplers/uniform_sampler.h>
 #include <openmore/replanners/replanner_base.h>
 #include <graph_core/solvers/rrt.h>
 #include <typeinfo>
@@ -43,9 +44,9 @@ protected:
   bool tree_is_trimmed_;
 
   /**
-   * @brief Sampler for informed sampling during the tree's growth process.
+   * @brief Sampler for uniformly sampling during the tree's growth process.
    */
-  InformedSamplerPtr sampler_;
+  UniformSamplerPtr sampler_;
 
   /**
    * @brief List of checked connections.
