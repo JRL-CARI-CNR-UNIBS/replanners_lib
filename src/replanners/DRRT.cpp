@@ -120,7 +120,7 @@ bool DynamicRRT::trimInvalidTree(NodePtr& node)
   std::vector<ConnectionPtr> node2goal = tree->getConnectionToNode(node); //Note: the root must be the goal (set in regrowRRT())
   for(const ConnectionPtr &conn: node2goal)
   {
-    if(graph_duration(graph_time::now()-tic).count()>=max_time_)
+    if(toSeconds(graph_time::now(),tic)>=max_time_)
     {
       if(verbose_)
         CNR_INFO(logger_,"Time to trim expired");
@@ -229,7 +229,7 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
   double max_distance = trimmed_tree_->getMaximumDistance();
   assert(max_distance>0.0);
 
-  double time = graph_duration(graph_time::now()-tic).count();
+  double time = toSeconds(graph_time::now(),tic);
   while(time<max_time_ && not success_)
   {
     NodePtr new_node;
@@ -301,7 +301,7 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
         }
       }
     }
-    time = graph_duration(graph_time::now()-tic).count();
+    time = toSeconds(graph_time::now(),tic);
   }
 
   return success_;

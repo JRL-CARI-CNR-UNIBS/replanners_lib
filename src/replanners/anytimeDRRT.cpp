@@ -65,7 +65,7 @@ bool AnytimeDynamicRRT::improvePath(NodePtr &node, const double& max_time)
   int n_fail = 0;
   PathPtr solution;
   double cost2beat;
-  double time = graph_duration(graph_time::now()-tic).count();
+  double time = toSeconds(graph_time::now(),tic);
   while(time<max_time && n_fail<FAILED_ITER)
   {
     cost2beat = (1-imprv)*path_cost;
@@ -103,7 +103,7 @@ bool AnytimeDynamicRRT::improvePath(NodePtr &node, const double& max_time)
         CNR_INFO(logger_,"Not improved");
     }
 
-    time = graph_duration(graph_time::now()-tic).count();
+    time = toSeconds(graph_time::now(),tic);
   }
 
   return success;
@@ -125,7 +125,7 @@ bool AnytimeDynamicRRT::replan()
       current_path_ = replanned_path_;  //try to improve the path replanned with regrowRRT()
       solver_->setSolution(current_path_);
 
-      double max_time_impr = 0.98*max_time_-graph_duration(graph_time::now()-tic).count();
+      double max_time_impr = 0.98*max_time_-toSeconds(graph_time::now(),tic);
       if(improvePath(node_replan_,max_time_impr)) //if not improved, success_ = true anyway beacuse a new path has been found with regrowRRT()
         solver_->setSolution(replanned_path_);
     }
@@ -143,7 +143,7 @@ bool AnytimeDynamicRRT::replan()
 
     solver_->setSolution(current_path_);
 
-    double max_time_impr = 0.98*max_time_-graph_duration(graph_time::now()-tic).count();
+    double max_time_impr = 0.98*max_time_-toSeconds(graph_time::now(),tic);
     if(improvePath(node_replan_,max_time_impr))
     {
       solver_->setSolution(replanned_path_);

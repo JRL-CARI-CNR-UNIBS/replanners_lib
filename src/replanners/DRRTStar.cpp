@@ -132,7 +132,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
   double max_distance = tree->getMaximumDistance();
 
   double max_time = 0.98*max_time_;
-  double time = graph_duration(graph_time::now()-tic).count();
+  double time = toSeconds(graph_time::now(),tic);
 
   while(time<0.98*max_time)
   {
@@ -178,7 +178,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
       }
     }
 
-    time = graph_duration(graph_time::now()-tic).count();
+    time = toSeconds(graph_time::now(),tic);
   }
 
 #ifdef GRAPH_DISPLAY_AVAILABLE

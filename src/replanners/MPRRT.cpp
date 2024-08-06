@@ -71,7 +71,7 @@ bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf,
     PathPtr connecting_path = nullptr;
     bool directly_connected = false;
 
-    time = max_time_- graph_duration(graph_time::now()-tic).count();
+    time = max_time_- toSeconds(graph_time::now(),tic);
 
     bool solved = computeConnectingPath(path1_node,path2_node,current_solution_cost,time,
                                         connecting_path,directly_connected,solver);
@@ -87,7 +87,7 @@ bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf,
         best_cost = new_cost;
       }
     }
-  } while((0.98*max_time_-graph_duration(graph_time::now()-tic).count())>0.0);
+  } while((0.98*max_time_-toSeconds(graph_time::now(),tic))>0.0);
 
   connecting_path_vector_.at(index) = best_solution;
 
@@ -97,7 +97,7 @@ bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf,
         (cost = current_solution_cost);
 
   if(verbose_)
-    CNR_INFO(logger_,"\n--- THREAD REASUME ---\nthread n: "<<index<<"\nsuccess: "<<success<<"\nconnecting path cost: "<< cost<<"\nn iter: "<<iter<<" time: "<<graph_duration(graph_time::now()-tic).count());
+    CNR_INFO(logger_,"\n--- THREAD REASUME ---\nthread n: "<<index<<"\nsuccess: "<<success<<"\nconnecting path cost: "<< cost<<"\nn iter: "<<iter<<" time: "<<toSeconds(graph_time::now(),tic));
 
   return success;
 }
@@ -269,7 +269,7 @@ bool MPRRT::computeConnectingPath(const NodePtr &path1_node_fake,
   }
   else
   {
-    double solver_time = max_time-graph_duration(toc_solver-tic_solver).count();
+    double solver_time = max_time-toSeconds(toc_solver,tic_solver);
     solver_has_solved = solver->solve(connecting_path,10000,solver_time);
   }
 
