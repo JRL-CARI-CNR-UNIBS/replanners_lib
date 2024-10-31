@@ -44,7 +44,7 @@ While *replanners_lib* is ROS-free, it can utilize [*graph_display*](https://git
 If you are using ROS 1 and want to include *replanners_lib* into a ROS package, download it in a catkin workspace and set `catkin config --install` to make other ROS packages able to find it.
 
 ## How to use
-[Here](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/documentation/tutorial.md) a quick tutorial on how you can use a replanner or implement your own algorithm.
+[Here](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/blob/master/documentation/tutorial.md) a quick tutorial on how you can use a replanner or implement your own algorithm.
 
 ## Documentation Update
 
