@@ -150,15 +150,6 @@ public:
     goal_node_  = current_path_->getConnections().back()->getChild();
   }
 
-//  /**
-//   * @brief Set the replanned path.
-//   * @param path The new replanned path.
-//   */
-//  void setReplannedPath(const PathPtr& path)
-//  {
-//    replanned_path_ = path;
-//  }
-
   /**
     * @brief Set the maximum time for replanning.
     * @param max_time The maximum time allowed for replanning.
