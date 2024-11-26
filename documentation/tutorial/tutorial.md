@@ -132,8 +132,8 @@ graph::core::NodePtr goal_node  = std::make_shared<graph::core::Node>(goal_confi
 
   double max_replanning_time = 0.200; // 200 ms
   Eigen::VectorXd current_configuration = start_configuration;
-  ReplannerBasePtr replanner =
-   std::make_shared<DynamicRRT>(current_configuration,initial_path,max_time,replanning_solver,logger);
+  openmore::ReplannerBasePtr replanner =
+   std::make_shared<openmore::DynamicRRT>(current_configuration,initial_path,max_time,replanning_solver,logger);
  ```
 8. Finally, we run the replanning algorithm to find a new feasible solution.
  A successful outcome is indicated by a cost that is less than infinity.

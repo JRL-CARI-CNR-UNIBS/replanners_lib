@@ -89,8 +89,8 @@ int main(int argc, char **argv)
 
   double max_replanning_time = 0.200; // 200 ms
   Eigen::VectorXd current_configuration = start_configuration;
-  ReplannerBasePtr replanner =
-   std::make_shared<DynamicRRT>(current_configuration,initial_path,max_time,replanning_solver,logger);
+  openmore::ReplannerBasePtr replanner =
+   std::make_shared<openmore::DynamicRRT>(current_configuration,initial_path,max_time,replanning_solver,logger);
 
   // Replan
   auto tic = graph_time::now();
