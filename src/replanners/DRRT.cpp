@@ -238,7 +238,7 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
     {
       assert(new_node->getParentConnectionsSize() == 1);
       new_node->getParentConnections().front()->setRecentlyChecked(true);
-      checked_connections_.push_back(new_node->getParentConnections().front());
+      checked_connections_.push_back(new_node->getParentConnections().front()); //this line is the reason why solver_ is not in charge of re-build the tree here..
 
       if((new_node->getConfiguration() - node->getConfiguration()).norm() < max_distance)
       {
@@ -259,39 +259,6 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
           trimmed_tree_->changeRoot(node);
           replanned_path_ = std::make_shared<Path>(trimmed_tree_->getConnectionToNode(goal_node_), metrics_, checker_, logger_);
           replanned_path_->setTree(trimmed_tree_);
-
-//          // SOLUZIONE MOMENTANEA
-//          for(unsigned int i=0;i<replanned_path_->getConnectionsSize();i++)
-//          {
-//            if(replanned_path_->getConnections().at(i)->norm() <1e-06)
-//            {
-//              if(replanned_path_->getConnections().at(i)->getParent()->getChildConnectionsSize() == 1)
-//              {
-//                ConnectionPtr conn = std::make_shared<Connection>(replanned_path_->getConnections().at(i-1)->getParent(),replanned_path_->getConnections().at(i)->getChild(),logger_);
-//                double cost = metrics_->cost(replanned_path_->getConnections().at(i-1)->getParent(),replanned_path_->getConnections().at(i)->getChild());
-//                conn->setCost(cost);
-//                conn->add();
-
-//                replanned_path_->getConnections().at(i)->remove();
-
-//                replanned_path_ = std::make_shared<Path>(trimmed_tree_->getConnectionToNode(goal_node_), metrics_, checker_, logger_);
-//                break;
-//              }
-//              else if(replanned_path_->getConnections().at(i)->getChild()->getChildConnectionsSize() == 1)
-//              {
-//                ConnectionPtr conn = std::make_shared<Connection>(replanned_path_->getConnections().at(i)->getParent(),replanned_path_->getConnections().at(i+1)->getChild(),logger_);
-//                double cost = metrics_->cost(replanned_path_->getConnections().at(i)->getParent(),replanned_path_->getConnections().at(i+1)->getChild());
-//                conn->setCost(cost);
-//                conn->add();
-
-//                replanned_path_->getConnections().at(i)->remove();
-
-//                replanned_path_ = std::make_shared<Path>(trimmed_tree_->getConnectionToNode(goal_node_), metrics_, checker_, logger_);
-//                break;
-//              }
-//            }
-//          }
-//          // FINO A QUA
 
           solver_->setSolution(replanned_path_); // set trimmed_tree_ as solver_'s tree
           tree_is_trimmed_ = false;
