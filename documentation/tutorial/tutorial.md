@@ -1,7 +1,7 @@
 ## Tutorials
 This tutorial provides a step-by-step guide on using a replanner to quickly adjust a robot's path when its current one becomes invalid. All necessary classes and tools for solving path planning problems are available in the [`graph_core`](https://github.com/JRL-CARI-CNR-UNIBS/graph_core) library, and [here](https://github.com/JRL-CARI-CNR-UNIBS/graph_core/blob/master/docs/tutorial/tutorial_intro.md) you can find the related tutorials.
 
-### Replanning a path
+### Use a replanner
 In [this tutorial](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/blob/master/documentation/tutorial/tutorial1.cpp), we demonstrate the use of a path replanner from `replanners_lib` to  replan a robot's path when encountering obstacles. The tutorial involves:
 
 1. Computing an initial path between a start and goal configuration.
@@ -66,7 +66,9 @@ graph::core::SamplerPtr sampler = std::make_shared<graph::core::UniformSampler>(
 graph::core::TreeSolverPtr solver =
 std::make_shared<graph::core::RRT>(metrics,collision_checker,sampler,logger);
 ```
-In this example, the collision checker uses the parameter `joints_threshold` as an input. This parameter defines a fictitious obstacle: if even a single joint exceeds the absolute value of `joints_threshold`, the entire configuration will be deemed to be in collision. Currently, with the threshold set to zero, no obstacles are considered in the scene.
+In this example, the collision checker uses the parameter `joints_threshold` as an input. 
+This parameter defines a fictitious obstacle: if the absolute value of even a single joint does not exceed `joints_threshold`, the entire configuration will be deemed to be in collision.
+Currently, with the threshold set to zero, no obstacles are considered in the scene.
 
 4. Define the start and goal nodes for the path planning process. You can specify these configurations directly, or use the `graph::core::get_param(..)` function to read the start and goal configurations from parameter files. This approach allows you to manage configurations more flexibly, especially when working with complex or varying setups.
 
@@ -151,3 +153,8 @@ if(success)
 else
   CNR_ERROR(logger, "No valid path found in "<<elapsed_time<<" seconds.");
 ```
+### Use a replanner leveraging MoveIt planning scene management
+See [this tutorial](https://github.com/JRL-CARI-CNR-UNIBS/openmore_ros_examples).
+
+### Develop a new replanner
+TODO
