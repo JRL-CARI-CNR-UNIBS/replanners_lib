@@ -5,9 +5,9 @@
   <version>0.0.0</version>
   <description>The replanners_lib package</description>
 
-  <maintainer email="c.tonola001@unibs.it">cesare</maintainer>
+  <maintainer email="c.tonola001@unibs.it">Cesare Tonola</maintainer>
 
-  <license>TODO</license>
+  <license>BSD3-Clause</license>
 
   <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
   <buildtool_depend condition="$ROS_VERSION != 1">cmake</buildtool_depend>

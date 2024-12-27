@@ -48,13 +48,3 @@ If you are using ROS 1 and want to include `replanners_lib` into a ROS package, 
 
 ## Tutorials
 Visit [this](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/blob/master/documentation/tutorial/tutorial.md) page for tutorials on how you can use a replanner or implement a new algorithm using `replanners_lib`.
-
-## Documentation Update
-
-<h1 align="center">🚧 Update in Progress! 🚧</h1>
-<p align="center">
-  <img src="https://img.shields.io/badge/Status-Updating-blue?style=for-the-badge&logo=github">
-</p>
-<p align="center">
-  We're currently working on documentation. Expect new changes in the next few weeks. Stay tuned!
-</p>
