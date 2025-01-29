@@ -2,7 +2,7 @@
 This tutorial provides a step-by-step guide on using a replanner to quickly adjust a robot's path when its current one becomes invalid. All necessary classes and tools for solving path planning problems are available in the [`graph_core`](https://github.com/JRL-CARI-CNR-UNIBS/graph_core) library, and [here](https://github.com/JRL-CARI-CNR-UNIBS/graph_core/blob/master/docs/tutorial/tutorial_intro.md) you can find the related tutorials.
 
 ### Use a replanner
-In [this tutorial](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/blob/master/tests/src/path_replanning_tests.cpp), we demonstrate the use of a path replanner from `replanners_lib` to  replan a robot's path when encountering obstacles. The tutorial involves:
+In [this tutorial](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/blob/master/tests/src/path_replanning_test.cpp), we demonstrate the use of a path replanner from `replanners_lib` to  replan a robot's path when encountering obstacles. The tutorial involves:
 
 1. Computing an initial path between a start and goal configuration.
 2. Simulating an obstacle that invalidates the computed path.
