@@ -58,6 +58,7 @@ DynamicRRT::DynamicRRT(Eigen::VectorXd& current_configuration,
   {
     tmp_solver = std::static_pointer_cast<RRT>(solver);
   }
+
   solver_ = tmp_solver;
 
   // Search the entire space when rebuilding the tree

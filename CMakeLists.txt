@@ -25,7 +25,19 @@ set(DEPS
 set(PRIVATE_DEPS
   )
 
-###### If ROS is available include graph_display (for debugging) ######
+  # Configure RPATH for libraries
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+list(APPEND CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_BUILD_RPATH "")
+
+message(STATUS "${BLUE}CMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH}${RESET}")
+
+# Options
+option(BUILD_TESTS "Build the test executables" ON)
+
+# If ROS is available include graph_display
 option(USE_GRAPH_DISPLAY "'graph_display' SUPPORT" ON)
 
 if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}" STREQUAL "2"))
@@ -61,6 +73,10 @@ target_link_libraries(${PROJECT_NAME}
   )
 
 add_library("${PROJECT_NAME}::${PROJECT_NAME}" ALIAS ${PROJECT_NAME})
+
+if(BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
 
 # Install
 install(DIRECTORY include/openmore

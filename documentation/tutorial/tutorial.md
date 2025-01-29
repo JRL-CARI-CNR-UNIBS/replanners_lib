@@ -2,7 +2,7 @@
 This tutorial provides a step-by-step guide on using a replanner to quickly adjust a robot's path when its current one becomes invalid. All necessary classes and tools for solving path planning problems are available in the [`graph_core`](https://github.com/JRL-CARI-CNR-UNIBS/graph_core) library, and [here](https://github.com/JRL-CARI-CNR-UNIBS/graph_core/blob/master/docs/tutorial/tutorial_intro.md) you can find the related tutorials.
 
 ### Use a replanner
-In [this tutorial](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/blob/master/documentation/tutorial/tutorial1.cpp), we demonstrate the use of a path replanner from `replanners_lib` to  replan a robot's path when encountering obstacles. The tutorial involves:
+In [this tutorial](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/blob/master/tests/src/path_replanning_tests.cpp), we demonstrate the use of a path replanner from `replanners_lib` to  replan a robot's path when encountering obstacles. The tutorial involves:
 
 1. Computing an initial path between a start and goal configuration.
 2. Simulating an obstacle that invalidates the computed path.
@@ -25,10 +25,14 @@ For detailed information about path computation using `graph_core`, visit its [t
 
 2. A logger is required for tracking information during execution. Use the `cnr_logger` library with a configuration file to specify logging settings. For further details, refer to the [cnr_logger repository](https://github.com/CNR-STIIMA-IRAS/cnr_logger).
 ```cpp
-// Load the logger's cofiguration
-std::string path_to_config_folder = "path/to/config/folder";
-std::string logger_file = path_to_config_folder+"/logger_param.yaml";
-cnr_logger::TraceLoggerPtr logger = std::make_shared<cnr_logger::TraceLogger>("openmore_tutorial_loggers",logger_file);
+// Load the logger's configuration  
+std::string path_to_config_folder = std::string(TEST_DIR);
+std::string logger_file = path_to_config_folder + "/logger_param.yaml";
+
+if (argc > 1)
+  logger_file = path_to_config_folder + "/" + std::string(argv[1]);  // or take it from argument
+
+cnr_logger::TraceLoggerPtr logger = std::make_shared<cnr_logger::TraceLogger>("openmore_tests", logger_file);
 ```
 
 3. Define a collision checker, a cost function, a sampler, and finally the solver.
@@ -36,20 +40,32 @@ To handle parameters, you can utilize `cnr_param`, which leverages [yaml-cpp](ht
 
 ```cpp
 // Define namespace for parameters retrieving
-  std::string param_ns = "/openmore_tutorial";  // must begin with "/"
+std::string param_ns = "/openmore_tests";  // must begin with "/"
+
+// Load params
+std::string command =
+    "cnr_param_server --path-to-file " + std::string(TEST_DIR) +
+    "/replanners_lib_tests_params.yaml";  // use cnr_param utility to write parameters contained in this file
+CNR_INFO(logger, "Executing command: " << command);
+int ret_code = std::system(command.c_str());
+if (ret_code != 0)
+{
+  CNR_ERROR(logger, "Error: command " << command << " failed");
+  return ret_code;
+}
 
 // Define the collision checker (foo collision checker)
 double min_cc_distance;
 double default_min_cc_distance = 0.01;
 graph::core::get_param(logger,param_ns,"min_cc_distance",min_cc_distance,min_cc_distance); //wrapper to cnr_param functions
-  
+
 if(min_cc_distance<=0)
   min_cc_distance = default_min_cc_distance;
 
 double joints_threshold = 0.0;
 
-graph::collision_check::CollisionCheckerPtr collision_checker = 
-std::make_shared<graph::collision_check::Cube3dCollisionChecker>(logger,joints_threshold,min_cc_distance);
+graph::core::CollisionCheckerPtr collision_checker =
+  std::make_shared<graph::core::Cube3dCollisionChecker>(logger,joints_threshold,min_cc_distance);
 
 // Define a cost function (Euclidean metrics)
 graph::core::MetricsPtr metrics = std::make_shared<graph::core::EuclideanMetrics>(logger);
@@ -64,7 +80,7 @@ graph::core::SamplerPtr sampler = std::make_shared<graph::core::UniformSampler>(
 
 // Define the solver (RRT)
 graph::core::TreeSolverPtr solver =
-std::make_shared<graph::core::RRT>(metrics,collision_checker,sampler,logger);
+  std::make_shared<graph::core::RRT>(metrics,collision_checker,sampler,logger);
 ```
 In this example, the collision checker uses the parameter `joints_threshold` as an input. 
 This parameter defines a fictitious obstacle: if the absolute value of even a single joint does not exceed `joints_threshold`, the entire configuration will be deemed to be in collision.
@@ -91,20 +107,22 @@ graph::core::NodePtr goal_node  = std::make_shared<graph::core::Node>(goal_confi
 5. With the solver set up, compute the path from the start to the goal node.
 
 ```cpp
-  // Compute the initial robot's path
-  double max_time = 10.0; //seconds
-  size_t max_iter = 1000000;
-  graph::core::PathPtr initial_path;
-  
-  bool found = solver->computePath(start_node,goal_node,param_ns,initial_path,max_time,max_iter);
-  
-  if(found)
-    CNR_INFO(logger,"Path found! Cost: "<<initial_path->cost());
-  else
-  {
-    CNR_ERROR(logger,"Initial path not found!");
-    return 0;
-  }
+// Compute the initial robot's path
+double max_time = 10.0; //seconds
+size_t max_iter = 1000000;
+graph::core::PathPtr initial_path;
+
+CNR_INFO(logger,"Looking for the initial path..");
+
+bool found = solver->computePath(start_node,goal_node,param_ns,initial_path,max_time,max_iter);
+
+if(found)
+  CNR_INFO(logger,"Path found! Cost: "<<initial_path->cost());
+else
+{
+  CNR_ERROR(logger,"Initial path not found!");
+  return 0;
+}
 ```
 
 6. Now, we simulate a new obstacle appearing in the scene, which invalidates the previously computed path.
@@ -112,14 +130,14 @@ graph::core::NodePtr goal_node  = std::make_shared<graph::core::Node>(goal_confi
   If the path is blocked, the obstructed connections are assigned an infinite cost, effectively rendering the entire path invalid.
 
 ```cpp
-  // Simulate a new obstacle on the path and update its cost
-  joints_threshold = 1.0; //increases the obstacle's size, from 0.0 to 1.0 on each robot's joint
-  graph::collision_check::CollisionCheckerPtr new_obs_collision_checker = 
-    std::make_shared<graph::collision_check::Cube3dCollisionChecker>(logger,joints_threshold,min_cc_distance);
-  initial_path->setCollisionChecker(new_obs_collision_checker);
-  initial_path->isValid();
+// Simulate a new obstacle on the path and update its cost
+joints_threshold = 1.0; //increases the obstacle's size, from 0.0 to 1.0 on each robot's joint
+graph::core::CollisionCheckerPtr new_obs_collision_checker =
+  std::make_shared<graph::core::Cube3dCollisionChecker>(logger,joints_threshold,min_cc_distance);
+initial_path->setChecker(new_obs_collision_checker);
+initial_path->isValid();
 
-  CNR_INFO(logger,"Updated path's cost: "<<initial_path->cost());
+CNR_INFO(logger,"An obstacle appeared, updated path's cost: "<<initial_path->cost());
 ```
 7. To create a replanner object, the following inputs are required:
 - Current robot configuration: the robot's position along the path. Replanning adjusts or replaces the path segment from the current configuration to the goal.
@@ -128,23 +146,26 @@ graph::core::NodePtr goal_node  = std::make_shared<graph::core::Node>(goal_confi
 - Replanning solver: path replanning algorithms utilize solvers from standard path planning to recover a feasible solution. For example, DRRT removes invalidated branches caused by obstacles and regrows the tree using RRT.
 - Logger: a utility for logging purposes.
  ```cpp
-   // Create a replanner object
-  graph::core::TreeSolverPtr replanning_solver =
-   std::make_shared<graph::core::RRT>(metrics,new_obs_collision_checker,sampler,logger);
+  // Create a replanner object
+graph::core::TreeSolverPtr replanning_solver =
+  std::make_shared<graph::core::RRT>(metrics,new_obs_collision_checker,sampler,logger);
 
-  double max_replanning_time = 0.200; // 200 ms
-  Eigen::VectorXd current_configuration = start_configuration;
-  openmore::ReplannerBasePtr replanner =
-   std::make_shared<openmore::DynamicRRT>(current_configuration,initial_path,max_time,replanning_solver,logger);
+replanning_solver->config(param_ns);
+
+double max_replanning_time = 0.200; // 200 ms
+Eigen::VectorXd current_configuration = start_configuration;
+openmore::ReplannerBasePtr replanner =
+  std::make_shared<openmore::DynamicRRT>(current_configuration,initial_path,max_replanning_time,replanning_solver,logger);
  ```
 8. Finally, we run the replanning algorithm to find a new feasible solution.
  A successful outcome is indicated by a cost that is less than infinity.
  ```cpp
   // Replan
-auto tic = graph_time::now();
+CNR_INFO(logger,"Replanning the path.. ");
+auto tic = graph::core::graph_time::now();
 replanner->replan();
-success = replanner->getSuccess();
-auto toc = graph_time::now();
+bool success = replanner->getSuccess();
+auto toc = graph::core::graph_time::now();
 
 double elapsed_time = graph::core::toSeconds(toc,tic);
 
