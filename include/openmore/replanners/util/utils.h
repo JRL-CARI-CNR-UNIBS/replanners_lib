@@ -54,4 +54,4 @@ using namespace cnr_logger;
 #ifdef GRAPH_DISPLAY_AVAILABLE
 using namespace graph::display;
 #endif
-}
+}  // namespace openmore

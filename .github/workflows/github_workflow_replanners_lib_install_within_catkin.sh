@@ -14,20 +14,12 @@ echo "Setting up Catkin workspace at $WORKSPACE_DIR"
 mkdir -p $SRC_DIR
 cd $WORKSPACE_DIR
 
-# Clone graph_corea and replanners_lib into the src folder if not already present
-if [ ! -d "$SRC_DIR/graph_core" ]; then
-    echo "Cloning graph_core repository into $SRC_DIR"
-    git clone https://github.com/JRL-CARI-CNR-UNIBS/graph_core.git $SRC_DIR/graph_core
+# Clone graph_corea and replanners_lib into the src folder 
+echo "Cloning graph_core repository into $SRC_DIR"
+git clone https://github.com/JRL-CARI-CNR-UNIBS/graph_core.git $SRC_DIR/graph_core
 
-    echo "Cloning replanners_lib repository into $SRC_DIR"
-    git clone https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib.git $SRC_DIR/replanners_lib
-fi
-
-# Check for missing catkin package
-if [ ! -d "$SRC_DIR/catkin" ]; then
-    echo "Cloning catkin package into $SRC_DIR"
-    git clone https://github.com/ros/catkin.git $SRC_DIR/catkin
-fi
+echo "Cloning replanners_lib repository into $SRC_DIR"
+git clone https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib.git $SRC_DIR/replanners_lib
 
 # Build the workspace
 echo "Building the Catkin workspace"

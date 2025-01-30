@@ -42,12 +42,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
  * @file DRRTStar.h
- * @brief From the paper Dynamic path planning and replanning for mobile robots using RRT* (https://ieeexplore.ieee.org/document/8122814).
+ * @brief From the paper Dynamic path planning and replanning for mobile robots using RRT*
+ * (https://ieeexplore.ieee.org/document/8122814).
  */
 
 namespace openmore
 {
-
 /**
  * @class DynamicRRTStar
  * @brief Class for dynamic path planning and replanning for mobile robots using RRT*.
@@ -58,10 +58,9 @@ namespace openmore
 class DynamicRRTStar;
 typedef std::shared_ptr<DynamicRRTStar> DynamicRRTStarPtr;
 
-class DynamicRRTStar: public ReplannerBase
+class DynamicRRTStar : public ReplannerBase
 {
 protected:
-
   /**
    * @brief Finds the last valid node before an obstacle on a given subpath.
    *
@@ -85,7 +84,7 @@ protected:
    * @param node The node from which replanning starts.
    * @return True if the connection to the goal node is successful, false otherwise.
    */
-  bool connectBehindObs(const NodePtr &node);
+  bool connectBehindObs(const NodePtr& node);
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -99,17 +98,14 @@ public:
    * @param solver Solver for the tree. If it is not RRT*, it is converted into RRT*.
    * @param logger Logger for trace information.
    */
-  DynamicRRTStar(Eigen::VectorXd& current_configuration,
-                 PathPtr& current_path,
-                 const double& max_time,
-                 const TreeSolverPtr &solver,
-                 const TraceLoggerPtr &logger);
+  DynamicRRTStar(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time,
+                 const TreeSolverPtr& solver, const TraceLoggerPtr& logger);
 
   /**
-    * @brief Executes the replanning algorithm.
-    *
-    * @return True if replanning was successful, false otherwise.
-    */
+   * @brief Executes the replanning algorithm.
+   *
+   * @return True if replanning was successful, false otherwise.
+   */
   bool replan() override;
 };
-}
+}  // namespace openmore

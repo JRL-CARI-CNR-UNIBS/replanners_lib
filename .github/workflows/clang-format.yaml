@@ -24,7 +24,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clang-format
 
       - name: Check formatting
-        working-directory: graph_core
+        working-directory: replanners_lib
         run: |
           FILES=$(find . -type f \( -name "*.cpp" -o -name "*.h" \))
 

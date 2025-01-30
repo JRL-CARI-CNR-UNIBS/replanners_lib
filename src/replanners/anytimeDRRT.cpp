@@ -37,21 +37,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace openmore
 {
-
-AnytimeDynamicRRT::AnytimeDynamicRRT(Eigen::VectorXd& current_configuration,
-                                     PathPtr& current_path,
-                                     const double& max_time,
-                                     const TreeSolverPtr &solver,
-                                     const TraceLoggerPtr& logger): DynamicRRT(current_configuration,current_path,max_time,solver,logger)
+AnytimeDynamicRRT::AnytimeDynamicRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path,
+                                     const double& max_time, const TreeSolverPtr& solver, const TraceLoggerPtr& logger)
+  : DynamicRRT(current_configuration, current_path, max_time, solver, logger)
 {
   const std::type_info& ti1 = typeid(AnytimeRRT);
   const std::type_info& ti2 = typeid(*solver);
 
   AnytimeRRTPtr tmp_solver;
-  if(std::type_index(ti1) != std::type_index(ti2))
+  if (std::type_index(ti1) != std::type_index(ti2))
   {
-    tmp_solver = std::make_shared<AnytimeRRT>(solver->getMetrics(), solver->getChecker(), solver->getSampler(), logger_);
-    tmp_solver->importFromSolver(solver); //copy the required fields
+    tmp_solver =
+        std::make_shared<AnytimeRRT>(solver->getMetrics(), solver->getChecker(), solver->getSampler(), logger_);
+    tmp_solver->importFromSolver(solver);  // copy the required fields
   }
   else
     tmp_solver = std::static_pointer_cast<AnytimeRRT>(solver);
@@ -63,26 +61,28 @@ AnytimeDynamicRRT::AnytimeDynamicRRT(Eigen::VectorXd& current_configuration,
   assert(solver_->getStartTree());
 }
 
-bool AnytimeDynamicRRT::improvePath(NodePtr &node, const double& max_time)
+bool AnytimeDynamicRRT::improvePath(NodePtr& node, const double& max_time)
 {
   auto tic = graph_time::now();
 
   bool success = false;
 
-  AnytimeRRTPtr forced_cast_solver = std::static_pointer_cast<AnytimeRRT>(solver_); //solver_ is of type AnytimeRRT (see constructor)
+  AnytimeRRTPtr forced_cast_solver =
+      std::static_pointer_cast<AnytimeRRT>(solver_);  // solver_ is of type AnytimeRRT (see constructor)
 
-  if(replanned_path_)
+  if (replanned_path_)
   {
-    if(current_path_->getTree() != replanned_path_->getTree())
+    if (current_path_->getTree() != replanned_path_->getTree())
     {
-      CNR_INFO(logger_,"Current path tree, replanned path tree: "<<current_path_->getTree()<<" "<<replanned_path_->getTree());
+      CNR_INFO(logger_, "Current path tree, replanned path tree: " << current_path_->getTree() << " "
+                                                                   << replanned_path_->getTree());
       assert(0);
     }
   }
 
-  if(current_path_->getTree() != solver_->getStartTree())
+  if (current_path_->getTree() != solver_->getStartTree())
   {
-    CNR_INFO(logger_,"Current path tree, solver tree: "<<current_path_->getTree()<<" "<<solver_->getStartTree());
+    CNR_INFO(logger_, "Current path tree, solver tree: " << current_path_->getTree() << " " << solver_->getStartTree());
     assert(0);
   }
 
@@ -92,7 +92,8 @@ bool AnytimeDynamicRRT::improvePath(NodePtr &node, const double& max_time)
   double imprv = forced_cast_solver->getCostImpr();
   double path_cost = solver_->getSolution()->getCostFromConf(node->getConfiguration());
 
-  InformedSamplerPtr informed_sampler = std::make_shared<InformedSampler>(node->getConfiguration(),goal_node_->getConfiguration(),lb_,ub_,logger_,path_cost);
+  InformedSamplerPtr informed_sampler = std::make_shared<InformedSampler>(
+      node->getConfiguration(), goal_node_->getConfiguration(), lb_, ub_, logger_, path_cost);
   forced_cast_solver->setSampler(informed_sampler);
 
   //  forced_cast_solver->setPathCost(path_cost); //CHECK!!!
@@ -100,20 +101,20 @@ bool AnytimeDynamicRRT::improvePath(NodePtr &node, const double& max_time)
   int n_fail = 0;
   PathPtr solution;
   double cost2beat;
-  double time = toSeconds(graph_time::now(),tic);
-  while(time<max_time && n_fail<FAILED_ITER)
+  double time = toSeconds(graph_time::now(), tic);
+  while (time < max_time && n_fail < FAILED_ITER)
   {
-    cost2beat = (1-imprv)*path_cost;
+    cost2beat = (1 - imprv) * path_cost;
 
-    if(verbose_)
-      CNR_INFO(logger_,"Path cost: "<<path_cost<<", cost2beat: "<<cost2beat);
+    if (verbose_)
+      CNR_INFO(logger_, "Path cost: " << path_cost << ", cost2beat: " << cost2beat);
 
-    NodePtr start_node = std::make_shared<Node>(node->getConfiguration(),logger_);
-    NodePtr goal_node  = std::make_shared<Node>(goal_node_->getConfiguration(),logger_);
+    NodePtr start_node = std::make_shared<Node>(node->getConfiguration(), logger_);
+    NodePtr goal_node = std::make_shared<Node>(goal_node_->getConfiguration(), logger_);
 
-    bool improved = forced_cast_solver->improve(start_node,goal_node,solution,cost2beat,10000,(max_time-time));
+    bool improved = forced_cast_solver->improve(start_node, goal_node, solution, cost2beat, 10000, (max_time - time));
 
-    if(improved)
+    if (improved)
     {
       replanned_path_ = solution;
       goal_node_ = goal_node;
@@ -122,23 +123,23 @@ bool AnytimeDynamicRRT::improvePath(NodePtr &node, const double& max_time)
 
       assert(replanned_path_->getConnections().back()->getChild()->getConfiguration() == goal_node->getConfiguration());
 
-      solver_->setSolution(solution); //set solution's tree as solver's tree
-      path_cost = solution->cost(); //CHECK
+      solver_->setSolution(solution);  // set solution's tree as solver's tree
+      path_cost = solution->cost();    // CHECK
 
-      if(verbose_)
-        CNR_INFO(logger_,"Improved cost: "<<path_cost);
+      if (verbose_)
+        CNR_INFO(logger_, "Improved cost: " << path_cost);
 
       assert(replanned_path_->getTree());
     }
     else
     {
-      n_fail +=1;
+      n_fail += 1;
 
-      if(verbose_)
-        CNR_INFO(logger_,"Not improved");
+      if (verbose_)
+        CNR_INFO(logger_, "Not improved");
     }
 
-    time = toSeconds(graph_time::now(),tic);
+    time = toSeconds(graph_time::now(), tic);
   }
 
   return success;
@@ -151,35 +152,36 @@ bool AnytimeDynamicRRT::replan()
   success_ = false;
   double cost_from_conf = current_path_->getCostFromConf(current_configuration_);
 
-  if(cost_from_conf == std::numeric_limits<double>::infinity())
+  if (cost_from_conf == std::numeric_limits<double>::infinity())
   {
-    if(DynamicRRT::replan(cost_from_conf))
+    if (DynamicRRT::replan(cost_from_conf))
     {
       success_ = true;
 
-      current_path_ = replanned_path_;  //try to improve the path replanned with regrowRRT()
+      current_path_ = replanned_path_;  // try to improve the path replanned with regrowRRT()
       solver_->setSolution(current_path_);
 
-      double max_time_impr = 0.98*max_time_-toSeconds(graph_time::now(),tic);
-      if(improvePath(node_replan_,max_time_impr)) //if not improved, success_ = true anyway beacuse a new path has been found with regrowRRT()
+      double max_time_impr = 0.98 * max_time_ - toSeconds(graph_time::now(), tic);
+      if (improvePath(node_replan_, max_time_impr))  // if not improved, success_ = true anyway beacuse a new path has
+                                                     // been found with regrowRRT()
         solver_->setSolution(replanned_path_);
     }
     else
     {
       success_ = false;
-      if(verbose_)
-        CNR_ERROR(logger_,"Tree can not be regrown using regrowRRT");
+      if (verbose_)
+        CNR_ERROR(logger_, "Tree can not be regrown using regrowRRT");
     }
   }
   else
   {
     ConnectionPtr conn = current_path_->findConnection(current_configuration_);
-    node_replan_ = current_path_->addNodeAtCurrentConfig(current_configuration_,conn,false);
+    node_replan_ = current_path_->addNodeAtCurrentConfig(current_configuration_, conn, false);
 
     solver_->setSolution(current_path_);
 
-    double max_time_impr = 0.98*max_time_-toSeconds(graph_time::now(),tic);
-    if(improvePath(node_replan_,max_time_impr))
+    double max_time_impr = 0.98 * max_time_ - toSeconds(graph_time::now(), tic);
+    if (improvePath(node_replan_, max_time_impr))
     {
       solver_->setSolution(replanned_path_);
       success_ = true;
@@ -190,4 +192,4 @@ bool AnytimeDynamicRRT::replan()
 
   return success_;
 }
-}
+}  // namespace openmore

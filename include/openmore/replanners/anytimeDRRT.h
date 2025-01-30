@@ -40,12 +40,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
  * @file anytimeDRRT.h
- * @brief From the paper Anytime, Dynamic Planning in High-dimensional Search Spaces (https://ieeexplore.ieee.org/document/4209270)
+ * @brief From the paper Anytime, Dynamic Planning in High-dimensional Search Spaces
+ * (https://ieeexplore.ieee.org/document/4209270)
  */
 
 namespace openmore
 {
-
 /**
  * @class AnytimeDynamicRRT
  * @brief Class for dynamic replanning using Anytime RRT in high-dimensional search spaces.
@@ -56,13 +56,11 @@ namespace openmore
 class AnytimeDynamicRRT;
 typedef std::shared_ptr<AnytimeDynamicRRT> AnytimeDynamicRRTPtr;
 
-class AnytimeDynamicRRT: public DynamicRRT
+class AnytimeDynamicRRT : public DynamicRRT
 {
-
-#define FAILED_ITER 3 //maximum number of failed path improvement attempts with AnytimeRRT
+#define FAILED_ITER 3  // maximum number of failed path improvement attempts with AnytimeRRT
 
 protected:
-
   /**
    * @brief Attempts to improve the replanned path using AnytimeRRT.
    *
@@ -73,7 +71,7 @@ protected:
    * @param max_time Maximum time allowed for improving the path.
    * @return True if the path was successfully improved, false otherwise.
    */
-  bool improvePath(NodePtr &node, const double& max_time);
+  bool improvePath(NodePtr& node, const double& max_time);
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -87,9 +85,8 @@ public:
    * @param solver Solver for the tree. If it is not AnytimeRRT, it is converted into AnytimeRRT.
    * @param logger Logger for trace information.
    */
-  AnytimeDynamicRRT(Eigen::VectorXd& current_configuration,
-                    PathPtr& current_path, const double& max_time,
-                    const TreeSolverPtr &solver, const TraceLoggerPtr &logger);
+  AnytimeDynamicRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time,
+                    const TreeSolverPtr& solver, const TraceLoggerPtr& logger);
 
   /**
    * @brief Execute the replanning algorithm with anytime improvements.
@@ -101,5 +98,4 @@ public:
    */
   bool replan() override;
 };
-}
-
+}  // namespace openmore

@@ -42,12 +42,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
  * @file MPRRT.h
- * @brief From the paper High-frequency replanning under uncertainty using parallel sampling-based motion planning (https://ieeexplore.ieee.org/document/7027233).
+ * @brief From the paper High-frequency replanning under uncertainty using parallel sampling-based motion planning
+ * (https://ieeexplore.ieee.org/document/7027233).
  */
 
 namespace openmore
 {
-
 /**
  * @class MPRRT
  * @brief Class for high-frequency replanning under uncertainty using parallel sampling-based motion planning.
@@ -59,10 +59,9 @@ namespace openmore
 class MPRRT;
 typedef std::shared_ptr<MPRRT> MPRRTPtr;
 
-class MPRRT: public ReplannerBase
+class MPRRT : public ReplannerBase
 {
 protected:
-
   /**
    * @brief Number of parallel plannings to be executed.
    */
@@ -79,7 +78,8 @@ protected:
   std::vector<PathPtr> connecting_path_vector_;
 
   /**
-   * @brief Replace the first and last nodes of the new path found with the replanning node and goal node (same configuration but different pointers).
+   * @brief Replace the first and last nodes of the new path found with the replanning node and goal node (same
+   * configuration but different pointers).
    *
    * @param connecting_path_conn Connections forming the new path to the goal.
    * @param path1_node replanning node.
@@ -96,7 +96,8 @@ protected:
    * @param index Index of the solver in the solver vector.
    * @return True if a connecting path was successfully computed, false otherwise.
    */
-  bool asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf, const Eigen::VectorXd path2_node_conf, const double current_solution_cost, const int index);
+  bool asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf, const Eigen::VectorXd path2_node_conf,
+                                  const double current_solution_cost, const int index);
 
   /**
    * @brief Computes a path between two nodes. This function is called by asyncComputeConnectingPath.
@@ -106,14 +107,18 @@ protected:
    * @param current_solution_cost Cost of the current solution.
    * @param max_time Maximum allowed time for computation.
    * @param connecting_path Output parameter for the computed connecting path.
-   * @param directly_connected Output parameter indicating if the nodes were directly connected (one straight connection).
+   * @param directly_connected Output parameter indicating if the nodes were directly connected (one straight
+   * connection).
    * @param solver Solver used for computing the path.
    * @return True if a connecting path was successfully computed, false otherwise.
    */
-  bool computeConnectingPath(const NodePtr &path1_node_fake, const NodePtr &path2_node_fake, const double &current_solution_cost, const double max_time, PathPtr &connecting_path, bool &directly_connected, TreeSolverPtr &solver);
+  bool computeConnectingPath(const NodePtr& path1_node_fake, const NodePtr& path2_node_fake,
+                             const double& current_solution_cost, const double max_time, PathPtr& connecting_path,
+                             bool& directly_connected, TreeSolverPtr& solver);
 
   /**
-   * @brief The function which orchestrates the replannign algorithm by calling the RRT execution (asyncComputeConnectingPath) on multiple threads.
+   * @brief The function which orchestrates the replannign algorithm by calling the RRT execution
+   * (asyncComputeConnectingPath) on multiple threads.
    *
    * @param node Replanning node to start the connection attempt from.
    * @return True if the node was successfully connected to the goal, false otherwise.
@@ -133,11 +138,8 @@ public:
    * @param logger Logger for trace information.
    * @param number_of_parallel_plannings Number of parallel plannings to be executed. Default is 1.
    */
-  MPRRT(Eigen::VectorXd& current_configuration,
-        PathPtr& current_path,
-        const double& max_time,
-        const TreeSolverPtr& solver,
-        const TraceLoggerPtr &logger,
+  MPRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time,
+        const TreeSolverPtr& solver, const TraceLoggerPtr& logger,
         const unsigned int& number_of_parallel_plannings = 1);
 
   /**
@@ -146,4 +148,4 @@ public:
    */
   bool replan() override;
 };
-}
+}  // namespace openmore

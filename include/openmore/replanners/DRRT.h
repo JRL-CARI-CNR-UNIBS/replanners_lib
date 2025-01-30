@@ -47,16 +47,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace openmore
 {
-
 /**
  * @class DynamicRRT
  * @brief Class for dynamic replanning using Rapidly-exploring Random Trees (RRT).
- * The algorithm replans from the goal to a given node by trimming the invalid part of the tree and then restarting its growth to find a new valid solution.
+ * The algorithm replans from the goal to a given node by trimming the invalid part of the tree and then restarting its
+ * growth to find a new valid solution.
  */
 class DynamicRRT;
 typedef std::shared_ptr<DynamicRRT> DynamicRRTPtr;
 
-class DynamicRRT: public ReplannerBase
+class DynamicRRT : public ReplannerBase
 {
 protected:
   /**
@@ -110,7 +110,8 @@ protected:
    *
    * This function starts trimming the path from the goal to the node given as input.
    * This approach helps reduce calculations by immediately discarding a large part of the tree if the path is trimmed.
-   * It assumes the tree's root is placed at the goal node. If the tree is trimmed, it is assigned to the member `trimmed_tree_`.
+   * It assumes the tree's root is placed at the goal node. If the tree is trimmed, it is assigned to the member
+   * `trimmed_tree_`.
    *
    * @param node Node to start trimming from.
    * @return True if the tree was trimmed, false otherwise.
@@ -128,7 +129,8 @@ protected:
    * @param old_nodes List of old nodes (the path's nodes).
    * @param old_connections_costs List of old connection costs (the path's connections).
    */
-  void fixTree(const NodePtr& node_replan, const NodePtr& root, std::vector<NodePtr> &old_nodes, std::vector<double> &old_connections_costs);
+  void fixTree(const NodePtr& node_replan, const NodePtr& root, std::vector<NodePtr>& old_nodes,
+               std::vector<double>& old_connections_costs);
 
   /**
    * @brief Replans the path from the current configuration.
@@ -136,6 +138,7 @@ protected:
    * @return True if replanning was successful, false otherwise.
    */
   bool replan(const double& cost_from_conf);
+
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -147,11 +150,8 @@ public:
    * @param solver Solver for the tree. If it is not RRT, it is converted into RRT.
    * @param logger Logger for trace information.
    */
-  DynamicRRT(Eigen::VectorXd& current_configuration,
-             PathPtr& current_path,
-             const double& max_time,
-             const TreeSolverPtr &solver,
-             const TraceLoggerPtr &logger);
+  DynamicRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time,
+             const TreeSolverPtr& solver, const TraceLoggerPtr& logger);
 
   /**
    * @brief Gets the status of whether the tree is trimmed.
@@ -168,4 +168,4 @@ public:
    */
   virtual bool replan() override;
 };
-}
+}  // namespace openmore

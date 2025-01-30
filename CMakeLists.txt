@@ -116,3 +116,14 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
   DESTINATION "share/${PROJECT_NAME}/cmake")
+
+# Clang-format target
+file(GLOB_RECURSE ALL_SOURCE_FILES *.cpp *.h)
+
+add_custom_target(
+    format
+    COMMAND chmod +x cmake_config/clang_format_target.sh
+    COMMAND cmake_config/clang_format_target.sh
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMENT "Running clang-format on all source files"
+)

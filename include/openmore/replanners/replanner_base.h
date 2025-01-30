@@ -46,7 +46,7 @@ namespace openmore
 class ReplannerBase;
 typedef std::shared_ptr<ReplannerBase> ReplannerBasePtr;
 
-class ReplannerBase: public std::enable_shared_from_this<ReplannerBase>
+class ReplannerBase : public std::enable_shared_from_this<ReplannerBase>
 {
 protected:
   /**
@@ -62,7 +62,8 @@ protected:
 
   /**
    * @brief The path replanned by the algorithm.
-   * The replanner modifies the current_path_ (or its tree) and assigns the new collision-free path to the replanned_path_.
+   * The replanner modifies the current_path_ (or its tree) and assigns the new collision-free path to the
+   * replanned_path_.
    */
   PathPtr replanned_path_;
 
@@ -72,14 +73,16 @@ protected:
   TreeSolverPtr solver_;
 
   /**
-   * @brief Metrics to evaluate the costs of paths and connections. For example, Euclidean metrics evaluate connections/paths length.
-   * Note that the metrics do not detect obstacles; the collision checker does. Thus, check if a connection is collision-free.
-   * If it is, compute its cost using the metrics; otherwise, set its cost to std::numeric_limits<double>::infinity().
+   * @brief Metrics to evaluate the costs of paths and connections. For example, Euclidean metrics evaluate
+   * connections/paths length. Note that the metrics do not detect obstacles; the collision checker does. Thus, check if
+   * a connection is collision-free. If it is, compute its cost using the metrics; otherwise, set its cost to
+   * std::numeric_limits<double>::infinity().
    */
   MetricsPtr metrics_;
 
   /**
-   * @brief Collision checker. It receives connections or paths as inputs and returns true or false based on their validity.
+   * @brief Collision checker. It receives connections or paths as inputs and returns true or false based on their
+   * validity.
    */
   CollisionCheckerPtr checker_;
 
@@ -99,10 +102,12 @@ protected:
   NodePtr goal_node_;
 
   /**
-   * @brief Flag to indicate if a new node corresponding to the current_configuration_ has been created at the beginning of the algorithm.
+   * @brief Flag to indicate if a new node corresponding to the current_configuration_ has been created at the beginning
+   * of the algorithm.
    *
-   * Replanning algorithms usually add a node corresponding to the current robot configuration at the beginning of the algorithm.
-   * If a new node is created, this flag is set to true. This can be helpful if, for instance, you want to remove previously created nodes in subsequent iterations.
+   * Replanning algorithms usually add a node corresponding to the current robot configuration at the beginning of the
+   * algorithm. If a new node is created, this flag is set to true. This can be helpful if, for instance, you want to
+   * remove previously created nodes in subsequent iterations.
    */
   bool is_a_new_node_;
 
@@ -117,7 +122,8 @@ protected:
   bool verbose_;
 
   /**
-   * @brief Maximum time allowed for replanning (e.g., 100 milliseconds). If a solution is not found within this time frame, the algorithm exits.
+   * @brief Maximum time allowed for replanning (e.g., 100 milliseconds). If a solution is not found within this time
+   * frame, the algorithm exits.
    */
   double max_time_;
 
@@ -140,17 +146,15 @@ public:
 
   /**
    * @brief Constructor for ReplannerBase.
-   * @param current_configuration Current configuration of the robot. Replannig will start from this or a subsequent configuration along the path.
+   * @param current_configuration Current configuration of the robot. Replannig will start from this or a subsequent
+   * configuration along the path.
    * @param current_path The current path traversed by the robot.
    * @param max_time Maximum time allowed for replanning.
    * @param solver Solver for tree-based path planning, e.g. RRT.
    * @param logger Logger for tracing.
    */
-  ReplannerBase(const Eigen::VectorXd &current_configuration,
-                const PathPtr &current_path,
-                const double &max_time,
-                const TreeSolverPtr& solver,
-                const TraceLoggerPtr &logger);
+  ReplannerBase(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time,
+                const TreeSolverPtr& solver, const TraceLoggerPtr& logger);
   /**
    * @brief Destructor for ReplannerBase.
    */
@@ -175,20 +179,21 @@ public:
   }
 
   /**
-   * @brief Set the current path. The success flag is set to false and the goal_node_ equal to the final node of the path.
+   * @brief Set the current path. The success flag is set to false and the goal_node_ equal to the final node of the
+   * path.
    * @param path The new current path.
    */
   virtual void setCurrentPath(const PathPtr& path)
   {
     success_ = false;
     current_path_ = path;
-    goal_node_  = current_path_->getConnections().back()->getChild();
+    goal_node_ = current_path_->getConnections().back()->getChild();
   }
 
   /**
-    * @brief Set the maximum time for replanning.
-    * @param max_time The maximum time allowed for replanning.
-    */
+   * @brief Set the maximum time for replanning.
+   * @param max_time The maximum time allowed for replanning.
+   */
   void setMaxTime(const double& max_time)
   {
     max_time_ = max_time;
@@ -204,7 +209,8 @@ public:
   }
 
   /**
-   * @brief Set the current configuration of the robot. Replannig will start from this or a subsequent configuration along the path.
+   * @brief Set the current configuration of the robot. Replannig will start from this or a subsequent configuration
+   * along the path.
    * @param q The new current configuration.
    */
   virtual void setCurrentConf(const Eigen::VectorXd& q)
@@ -244,13 +250,13 @@ public:
    * @brief Set the collision checker used by the algorithm, the solver, the current_path_ and replanned_path_.
    * @param checker The collision checker.
    */
-  virtual void setChecker(const CollisionCheckerPtr &checker)
+  virtual void setChecker(const CollisionCheckerPtr& checker)
   {
     checker_ = checker;
     solver_->setChecker(checker);
     current_path_->setChecker(checker);
 
-    if(replanned_path_)
+    if (replanned_path_)
       replanned_path_->setChecker(checker);
   }
 
@@ -261,7 +267,7 @@ public:
    * It is used for debugging purposes.
    * @param disp The display object.
    */
-  void setDisp(const DisplayPtr &disp)
+  void setDisp(const DisplayPtr& disp)
   {
     disp_ = disp;
   }
@@ -303,4 +309,4 @@ public:
    */
   virtual bool replan() = 0;
 };
-}
+}  // namespace openmore
