@@ -62,7 +62,7 @@ MARS::MARS(const Eigen::VectorXd& current_configuration, const PathPtr& current_
   pathSwitch_verbose_ = false;
 
   examined_flag_ = Node::getReservedFlagsNumber();  // the first free position in Node::flags_ vector where we can store
-                                                    // our new custom flag
+  // our new custom flag
 }
 
 MARS::MARS(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time,
@@ -1504,10 +1504,12 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
                                                          tic_cycle, connecting_path, quickly_solved);
 
       if (pathSwitch_verbose_)
+      {
         CNR_INFO(logger_, RESET() << BLUE() << "Time for computing connecting path "
                                   << toSeconds(graph_time::now(), tic_connecting_path) << " s"
                                   << " max ps time " << (pathSwitch_max_time_ - toSeconds(graph_time::now(), tic))
                                   << RESET());
+      }
 
       if (connecting_path_found)
       {
@@ -2025,8 +2027,8 @@ bool MARS::informedOnlineReplanning(const double& max_time)
             {
               start_node_vector.clear();
               start_node_vector = startNodes(candidate_solution_conn);  // if a solution different from
-                                                                        // subpath_to_start_node_for_pathSwitch is
-                                                                        // found, update the nodes
+              // subpath_to_start_node_for_pathSwitch is
+              // found, update the nodes
               j = start_node_vector.size();
             }
           }

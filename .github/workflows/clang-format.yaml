@@ -25,6 +25,7 @@ jobs:
 
       - name: Check formatting
         run: |
+          clang-format --version
           FILES=$(find . -type f \( -name "*.cpp" -o -name "*.h" \))
 
           CLANG_FORMAT_FILE=".clang-format"
