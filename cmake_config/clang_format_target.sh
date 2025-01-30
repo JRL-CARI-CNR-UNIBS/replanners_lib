@@ -1,9 +1,10 @@
 #!/bin/bash
 
-echo "Checking for clang-format..."
+echo "Checking for clang-format 10.0.0..."
 
-if ! command -v clang-format > /dev/null 2>&1; then
-    echo "clang-format not found, skipping format target"
+# Use clang-format-10
+if ! command -v clang-format-10 > /dev/null 2>&1; then
+    echo "clang-format 10.0.0 not found, skipping format target"
     exit 0 
 fi
 
@@ -30,7 +31,7 @@ fi
 echo "$FILES"
 
 for FILE in $FILES; do
-    clang-format -i --style=file --assume-filename="$CLANG_FORMAT_FILE" "$FILE"
+    clang-format-10 -i --style=file --assume-filename="$CLANG_FORMAT_FILE" "$FILE"
 done
 
 echo "clang-format completed successfully."

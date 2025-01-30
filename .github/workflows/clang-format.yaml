@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Clang Format
-        run: sudo apt-get update && sudo apt-get install -y clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang10 #clang-format 10
 
       - name: Check formatting
         run: |
@@ -38,8 +38,8 @@ jobs:
 
           for FILE in $FILES; do
             echo "Checking $FILE..."
-            clang-format --style=file --assume-filename="$CLANG_FORMAT_FILE" -n $FILE #show where the issues are
-            clang-format --Werror --style=file --assume-filename="$CLANG_FORMAT_FILE" -n $FILE #throw the error
+            clang-format-10 --style=file --assume-filename="$CLANG_FORMAT_FILE" -n $FILE #show where the issues are
+            clang-format-10 --Werror --style=file --assume-filename="$CLANG_FORMAT_FILE" -n $FILE #throw the error
           done
 
           echo "All files are correctly formatted."
