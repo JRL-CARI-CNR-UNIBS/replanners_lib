@@ -1779,16 +1779,15 @@ bool MARS::informedOnlineReplanning(const double& max_time)
   if (informedOnlineReplanning_verbose_)
     CNR_INFO(logger_, RESET() << GREEN() << "Searching for an already existing solution.." << RESET());
 
-  full_net_search_ ? (replanned_path = bestExistingSolution(subpath1)) :  // if a solution is not found, replanned_path = subpath1
-      (replanned_path = subpath1);
+  full_net_search_ ? (replanned_path = bestExistingSolution(subpath1)) : (replanned_path = subpath1);  // if a solution is not found, replanned_path = subpath1
 
   replanned_path_cost = replanned_path->cost();
 
   assert(replanned_path->getStartNode() == current_node);
 
-  if (replanned_path != subpath1)  // if an already existing solution has been found (different from subpath1), success
-                                   // = true
+  if (replanned_path != subpath1)
   {
+    // if an already existing solution has been found (different from subpath1), success = true
     success_ = true;
     assert(replanned_path->cost() < std::numeric_limits<double>::infinity());
 
