@@ -27,6 +27,7 @@ git clone https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib.git $SRC_DIR/repl
 cd $WORKSPACE_DIR
 echo "Building the Catkin workspace"
 catkin config --extend /opt/ros/noetic
+catkin config --install
 catkin build
 
 # Source the workspace setup

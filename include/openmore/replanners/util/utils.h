@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include <typeindex>
 #include <eigen3/Eigen/Core>
 #include <graph_core/solvers/tree_solver.h>
 #include <graph_core/metrics/metrics_base.h>
