@@ -37,8 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace openmore
 {
-MPRRT::MPRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time,
-             const TreeSolverPtr& solver, const TraceLoggerPtr& logger,
+MPRRT::MPRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver, const TraceLoggerPtr& logger,
              const unsigned int& number_of_parallel_plannings)
   : ReplannerBase(current_configuration, current_path, max_time, solver, logger)
 {
@@ -78,8 +77,8 @@ MPRRT::MPRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, cons
   connecting_path_vector_.resize(number_of_parallel_plannings_, nullptr);
 }
 
-bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf, const Eigen::VectorXd path2_node_conf,
-                                       const double current_solution_cost, const int index)
+bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf, const Eigen::VectorXd path2_node_conf, const double current_solution_cost,
+                                       const int index)
 {
   auto tic = graph_time::now();
 
@@ -104,8 +103,7 @@ bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf, co
 
     time = max_time_ - toSeconds(graph_time::now(), tic);
 
-    bool solved = computeConnectingPath(path1_node, path2_node, current_solution_cost, time, connecting_path,
-                                        directly_connected, solver);
+    bool solved = computeConnectingPath(path1_node, path2_node, current_solution_cost, time, connecting_path, directly_connected, solver);
 
     if (solved)
     {
@@ -126,9 +124,8 @@ bool MPRRT::asyncComputeConnectingPath(const Eigen::VectorXd path1_node_conf, co
   success ? (cost = best_cost) : (cost = current_solution_cost);
 
   if (verbose_)
-    CNR_INFO(logger_, "\n--- THREAD REASUME ---\nthread n: " << index << "\nsuccess: " << success
-                                                             << "\nconnecting path cost: " << cost << "\nn iter: "
-                                                             << iter << " time: " << toSeconds(graph_time::now(), tic));
+    CNR_INFO(logger_, "\n--- THREAD REASUME ---\nthread n: " << index << "\nsuccess: " << success << "\nconnecting path cost: " << cost << "\nn iter: " << iter
+                                                             << " time: " << toSeconds(graph_time::now(), tic));
 
   return success;
 }
@@ -157,8 +154,8 @@ bool MPRRT::connect2goal(const NodePtr& node)
   for (unsigned int i = 0; i < number_of_parallel_plannings_; i++)
   {
     int index = i;
-    futures.push_back(std::async(std::launch::async, &MPRRT::asyncComputeConnectingPath, this, node->getConfiguration(),
-                                 goal_node_->getConfiguration(), current_cost, index));
+    futures.push_back(std::async(std::launch::async, &MPRRT::asyncComputeConnectingPath, this, node->getConfiguration(), goal_node_->getConfiguration(),
+                                 current_cost, index));
   }
 
   std::vector<double> marker_color;
@@ -202,8 +199,7 @@ bool MPRRT::connect2goal(const NodePtr& node)
     replanned_path_ = new_path;
     double replanned_path_cost = replanned_path_->cost();
 
-    assert(current_path_->findConnection(replanned_path_->getConnections().front()->getParent()->getConfiguration()) !=
-           nullptr);
+    assert(current_path_->findConnection(replanned_path_->getConnections().front()->getParent()->getConfiguration()) != nullptr);
 
     if (replanned_path_cost < current_cost)
     {
@@ -215,9 +211,7 @@ bool MPRRT::connect2goal(const NodePtr& node)
     {
       success_ = false;
       if (verbose_)
-        CNR_INFO(logger_, "Solution found but cost (" << replanned_path_cost
-                                                      << ") is not better than the current cost (" << current_cost
-                                                      << ")");
+        CNR_INFO(logger_, "Solution found but cost (" << replanned_path_cost << ") is not better than the current cost (" << current_cost << ")");
     }
   }
   else
@@ -229,8 +223,7 @@ bool MPRRT::connect2goal(const NodePtr& node)
   return success_;
 }
 
-PathPtr MPRRT::concatWithNewPathToGoal(const std::vector<ConnectionPtr>& connecting_path_conn,
-                                       const NodePtr& path1_node)
+PathPtr MPRRT::concatWithNewPathToGoal(const std::vector<ConnectionPtr>& connecting_path_conn, const NodePtr& path1_node)
 {
   std::vector<ConnectionPtr> new_connecting_path_conn;
   NodePtr path2_node = std::make_shared<Node>(current_path_->getWaypoints().back());
@@ -252,8 +245,7 @@ PathPtr MPRRT::concatWithNewPathToGoal(const std::vector<ConnectionPtr>& connect
     new_connecting_path_conn.push_back(conn1);
 
     if (connecting_path_conn.size() > 2)
-      new_connecting_path_conn.insert(new_connecting_path_conn.end(), connecting_path_conn.begin() + 1,
-                                      connecting_path_conn.end() - 1);
+      new_connecting_path_conn.insert(new_connecting_path_conn.end(), connecting_path_conn.begin() + 1, connecting_path_conn.end() - 1);
 
     new_connecting_path_conn.push_back(conn2);
 
@@ -273,13 +265,11 @@ PathPtr MPRRT::concatWithNewPathToGoal(const std::vector<ConnectionPtr>& connect
   return std::make_shared<Path>(new_connecting_path_conn, metrics_, checker_, logger_);
 }
 
-bool MPRRT::computeConnectingPath(const NodePtr& path1_node_fake, const NodePtr& path2_node_fake,
-                                  const double& current_solution_cost, const double max_time, PathPtr& connecting_path,
-                                  bool& directly_connected, TreeSolverPtr& solver)
+bool MPRRT::computeConnectingPath(const NodePtr& path1_node_fake, const NodePtr& path2_node_fake, const double& current_solution_cost, const double max_time,
+                                  PathPtr& connecting_path, bool& directly_connected, TreeSolverPtr& solver)
 {
   SamplerPtr sampler =
-      std::make_shared<InformedSampler>(path1_node_fake->getConfiguration(), path2_node_fake->getConfiguration(), lb_,
-                                        ub_, logger_, current_solution_cost);
+      std::make_shared<InformedSampler>(path1_node_fake->getConfiguration(), path2_node_fake->getConfiguration(), lb_, ub_, logger_, current_solution_cost);
 
   solver->setSampler(sampler);
   solver->resetProblem();

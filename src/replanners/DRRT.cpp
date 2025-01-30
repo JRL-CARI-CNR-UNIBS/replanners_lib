@@ -37,8 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace openmore
 {
-DynamicRRT::DynamicRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time,
-                       const TreeSolverPtr& solver, const TraceLoggerPtr& logger)
+DynamicRRT::DynamicRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver,
+                       const TraceLoggerPtr& logger)
   : ReplannerBase(current_configuration, current_path, max_time, solver, logger)
 {
   // Solver must be RRT
@@ -64,8 +64,7 @@ DynamicRRT::DynamicRRT(Eigen::VectorXd& current_configuration, PathPtr& current_
   tree_is_trimmed_ = false;
 }
 
-void DynamicRRT::fixTree(const NodePtr& node_replan, const NodePtr& root, std::vector<NodePtr>& old_nodes,
-                         std::vector<double>& old_connections_costs)
+void DynamicRRT::fixTree(const NodePtr& node_replan, const NodePtr& root, std::vector<NodePtr>& old_nodes, std::vector<double>& old_connections_costs)
 {
   if (success_)
     return;
@@ -116,9 +115,8 @@ void DynamicRRT::fixTree(const NodePtr& node_replan, const NodePtr& root, std::v
   {
     assert(trimmed_tree_->isInTree(node_replan));
 
-    if (std::find(old_nodes.begin(), old_nodes.end(), node_replan) ==
-        old_nodes.end())  // if the node_replan has been added to the path and tree, remove it. If it was already
-                          // present, do not remove it
+    if (std::find(old_nodes.begin(), old_nodes.end(), node_replan) == old_nodes.end())  // if the node_replan has been added to the path and tree, remove it. If
+                                                                                        // it was already present, do not remove it
     {
       assert(node_replan->getParentConnectionsSize() == 1 && node_replan->getChildConnectionsSize() == 1);
 
@@ -153,8 +151,7 @@ bool DynamicRRT::trimInvalidTree(NodePtr& node)
 
   // Firstly trim the tree starting from the path to node
   bool obstructed;
-  std::vector<ConnectionPtr> node2goal =
-      tree->getConnectionToNode(node);  // Note: the root must be the goal (set in regrowRRT())
+  std::vector<ConnectionPtr> node2goal = tree->getConnectionToNode(node);  // Note: the root must be the goal (set in regrowRRT())
   for (const ConnectionPtr& conn : node2goal)
   {
     if (toSeconds(graph_time::now(), tic) >= max_time_)
@@ -243,8 +240,7 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
   {
     CNR_ERROR(logger_, "The goal can't be set as root!");
     CNR_INFO(logger_, "Goal node: " << goal_node_ << "\n" << *goal_node_);
-    CNR_INFO(logger_, "Current path end node: " << current_path_->getGoalNode() << "\n"
-                                                << *current_path_->getGoalNode());
+    CNR_INFO(logger_, "Current path end node: " << current_path_->getGoalNode() << "\n" << *current_path_->getGoalNode());
 
     throw std::runtime_error("The goal can't be set as root!");
   }
@@ -298,8 +294,7 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
 
           // Set the root in the node and extract the new path
           trimmed_tree_->changeRoot(node);
-          replanned_path_ =
-              std::make_shared<Path>(trimmed_tree_->getConnectionToNode(goal_node_), metrics_, checker_, logger_);
+          replanned_path_ = std::make_shared<Path>(trimmed_tree_->getConnectionToNode(goal_node_), metrics_, checker_, logger_);
           replanned_path_->setTree(trimmed_tree_);
 
           solver_->setSolution(replanned_path_);  // set trimmed_tree_ as solver_'s tree
@@ -330,8 +325,7 @@ bool DynamicRRT::replan(const double& cost_from_conf)
     if (verbose_)
       CNR_WARN(logger_, "Current path obstructed");
 
-    std::vector<NodePtr> path_nodes =
-        current_path_->getNodes();  // save nodes pointers (the same pointers stored in the tree)
+    std::vector<NodePtr> path_nodes = current_path_->getNodes();  // save nodes pointers (the same pointers stored in the tree)
     assert(path_nodes.front() == current_path_->getTree()->getRoot());
 
     std::vector<double> connections_costs;
@@ -358,8 +352,7 @@ bool DynamicRRT::replan(const double& cost_from_conf)
 
     checked_connections_.clear();
     checked_connections_ = current_path_->getSubpathFromNode(node_replan_)->getConnections();
-    std::for_each(checked_connections_.begin(), checked_connections_.end(),
-                  [&](ConnectionPtr c) { c->setRecentlyChecked(true); });
+    std::for_each(checked_connections_.begin(), checked_connections_.end(), [&](ConnectionPtr c) { c->setRecentlyChecked(true); });
 
     solver_->setSampler(sampler_);  // the uniform sampler
 
@@ -372,8 +365,7 @@ bool DynamicRRT::replan(const double& cost_from_conf)
     else
       success_ = true;
 
-    std::for_each(checked_connections_.begin(), checked_connections_.end(),
-                  [&](ConnectionPtr c) { c->setRecentlyChecked(false); });
+    std::for_each(checked_connections_.begin(), checked_connections_.end(), [&](ConnectionPtr c) { c->setRecentlyChecked(false); });
   }
   else  // replan not needed
   {

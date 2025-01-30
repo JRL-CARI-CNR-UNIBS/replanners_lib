@@ -153,8 +153,8 @@ public:
    * @param solver Solver for tree-based path planning, e.g. RRT.
    * @param logger Logger for tracing.
    */
-  ReplannerBase(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time,
-                const TreeSolverPtr& solver, const TraceLoggerPtr& logger);
+  ReplannerBase(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver,
+                const TraceLoggerPtr& logger);
   /**
    * @brief Destructor for ReplannerBase.
    */

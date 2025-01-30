@@ -129,8 +129,7 @@ protected:
    * @param old_nodes List of old nodes (the path's nodes).
    * @param old_connections_costs List of old connection costs (the path's connections).
    */
-  void fixTree(const NodePtr& node_replan, const NodePtr& root, std::vector<NodePtr>& old_nodes,
-               std::vector<double>& old_connections_costs);
+  void fixTree(const NodePtr& node_replan, const NodePtr& root, std::vector<NodePtr>& old_nodes, std::vector<double>& old_connections_costs);
 
   /**
    * @brief Replans the path from the current configuration.
@@ -150,8 +149,7 @@ public:
    * @param solver Solver for the tree. If it is not RRT, it is converted into RRT.
    * @param logger Logger for trace information.
    */
-  DynamicRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time,
-             const TreeSolverPtr& solver, const TraceLoggerPtr& logger);
+  DynamicRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver, const TraceLoggerPtr& logger);
 
   /**
    * @brief Gets the status of whether the tree is trimmed.

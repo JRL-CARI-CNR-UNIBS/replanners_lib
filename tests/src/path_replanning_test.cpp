@@ -22,9 +22,8 @@ int main(int argc, char** argv)
   std::string param_ns = "/openmore_tests";  // must begin with "/"
 
   // Load params
-  std::string command =
-      "cnr_param_server --path-to-file " + std::string(TEST_DIR) +
-      "/replanners_lib_tests_params.yaml";  // use cnr_param utility to write parameters contained in this file
+  std::string command = "cnr_param_server --path-to-file " + std::string(TEST_DIR) +
+                        "/replanners_lib_tests_params.yaml";  // use cnr_param utility to write parameters contained in this file
   CNR_INFO(logger, "Executing command: " << command);
   int ret_code = std::system(command.c_str());
   if (ret_code != 0)
@@ -44,8 +43,7 @@ int main(int argc, char** argv)
 
   double joints_threshold = 0.0;
 
-  graph::core::CollisionCheckerPtr collision_checker =
-      std::make_shared<graph::core::Cube3dCollisionChecker>(logger, joints_threshold, min_cc_distance);
+  graph::core::CollisionCheckerPtr collision_checker = std::make_shared<graph::core::Cube3dCollisionChecker>(logger, joints_threshold, min_cc_distance);
 
   // Define a cost function (Euclidean metrics)
   graph::core::MetricsPtr metrics = std::make_shared<graph::core::EuclideanMetrics>(logger);
@@ -96,23 +94,21 @@ int main(int argc, char** argv)
 
   // Simulate a new obstacle on the path and update its cost
   joints_threshold = 1.0;  // increases the obstacle's size, from 0.0 to 1.0 on each robot's joint
-  graph::core::CollisionCheckerPtr new_obs_collision_checker =
-      std::make_shared<graph::core::Cube3dCollisionChecker>(logger, joints_threshold, min_cc_distance);
+  graph::core::CollisionCheckerPtr new_obs_collision_checker = std::make_shared<graph::core::Cube3dCollisionChecker>(logger, joints_threshold, min_cc_distance);
   initial_path->setChecker(new_obs_collision_checker);
   initial_path->isValid();
 
   CNR_INFO(logger, "An obstacle appeared, updated path's cost: " << initial_path->cost());
 
   // Create a replanner object
-  graph::core::TreeSolverPtr replanning_solver =
-      std::make_shared<graph::core::RRT>(metrics, new_obs_collision_checker, sampler, logger);
+  graph::core::TreeSolverPtr replanning_solver = std::make_shared<graph::core::RRT>(metrics, new_obs_collision_checker, sampler, logger);
 
   replanning_solver->config(param_ns);
 
   double max_replanning_time = 0.200;  // 200 ms
   Eigen::VectorXd current_configuration = start_configuration;
-  openmore::ReplannerBasePtr replanner = std::make_shared<openmore::DynamicRRT>(
-      current_configuration, initial_path, max_replanning_time, replanning_solver, logger);
+  openmore::ReplannerBasePtr replanner =
+      std::make_shared<openmore::DynamicRRT>(current_configuration, initial_path, max_replanning_time, replanning_solver, logger);
 
   // Replan
   CNR_INFO(logger, "Replanning the path.. ");
@@ -124,8 +120,7 @@ int main(int argc, char** argv)
   double elapsed_time = graph::core::toSeconds(toc, tic);
 
   if (success)
-    CNR_INFO(logger,
-             "New path found in " << elapsed_time << " seconds. Cost: " << replanner->getReplannedPath()->cost());
+    CNR_INFO(logger, "New path found in " << elapsed_time << " seconds. Cost: " << replanner->getReplannedPath()->cost());
   else
     CNR_ERROR(logger, "No valid path found in " << elapsed_time << " seconds.");
 

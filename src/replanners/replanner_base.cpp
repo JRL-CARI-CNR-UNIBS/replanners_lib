@@ -37,8 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace openmore
 {
-ReplannerBase::ReplannerBase(const Eigen::VectorXd& current_configuration, const PathPtr& current_path,
-                             const double& max_time, const TreeSolverPtr& solver, const TraceLoggerPtr& logger)
+ReplannerBase::ReplannerBase(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver,
+                             const TraceLoggerPtr& logger)
   : current_configuration_(current_configuration)
   , current_path_(current_path)
   , replanned_path_(current_path)

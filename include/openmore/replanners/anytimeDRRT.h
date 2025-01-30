@@ -85,8 +85,8 @@ public:
    * @param solver Solver for the tree. If it is not AnytimeRRT, it is converted into AnytimeRRT.
    * @param logger Logger for trace information.
    */
-  AnytimeDynamicRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time,
-                    const TreeSolverPtr& solver, const TraceLoggerPtr& logger);
+  AnytimeDynamicRRT(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver,
+                    const TraceLoggerPtr& logger);
 
   /**
    * @brief Execute the replanning algorithm with anytime improvements.

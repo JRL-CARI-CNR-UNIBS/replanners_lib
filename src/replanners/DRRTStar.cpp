@@ -37,8 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace openmore
 {
-DynamicRRTStar::DynamicRRTStar(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time,
-                               const TreeSolverPtr& solver, const TraceLoggerPtr& logger)
+DynamicRRTStar::DynamicRRTStar(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver,
+                               const TraceLoggerPtr& logger)
   : ReplannerBase(current_configuration, current_path, max_time, solver, logger)
 {
   const std::type_info& ti1 = typeid(RRTStar);
@@ -119,16 +119,14 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
     CNR_INFO(logger_, "Replan start: \n" << *replan_start);
 
   double radius = 1.1 * ((replan_goal->getConfiguration() - replan_start->getConfiguration()).norm()) / 2;
-  Eigen::VectorXd u = (replan_goal->getConfiguration() - replan_start->getConfiguration()) /
-                      (replan_goal->getConfiguration() - replan_start->getConfiguration()).norm();
-  Eigen::VectorXd ball_center = replan_start->getConfiguration() +
-                                u * (((replan_goal->getConfiguration() - replan_start->getConfiguration()).norm()) / 2);
+  Eigen::VectorXd u =
+      (replan_goal->getConfiguration() - replan_start->getConfiguration()) / (replan_goal->getConfiguration() - replan_start->getConfiguration()).norm();
+  Eigen::VectorXd ball_center = replan_start->getConfiguration() + u * (((replan_goal->getConfiguration() - replan_start->getConfiguration()).norm()) / 2);
   BallSampler sampler(ball_center, lb_, ub_, logger_, radius);
 
   //*  STEP 1: REWIRING  *//
   std::vector<ConnectionPtr> checked_connections = current_path_->getConnections();
-  std::for_each(checked_connections.begin(), checked_connections.end(),
-                [&](ConnectionPtr c) { c->setRecentlyChecked(true); });
+  std::for_each(checked_connections.begin(), checked_connections.end(), [&](ConnectionPtr c) { c->setRecentlyChecked(true); });
 
   std::vector<NodePtr> white_list = current_path_->getNodes();  // first save the path nodes
   assert(std::find(white_list.begin(), white_list.end(), node) < white_list.end());
@@ -249,8 +247,7 @@ bool DynamicRRTStar::connectBehindObs(const NodePtr& node)
     solver_->setSolution(replanned_path_);  // set thre solver's tree
   }
 
-  std::for_each(checked_connections.begin(), checked_connections.end(),
-                [&](ConnectionPtr c) { c->setRecentlyChecked(false); });
+  std::for_each(checked_connections.begin(), checked_connections.end(), [&](ConnectionPtr c) { c->setRecentlyChecked(false); });
 
   return success_;
 }

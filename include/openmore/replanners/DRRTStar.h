@@ -98,8 +98,8 @@ public:
    * @param solver Solver for the tree. If it is not RRT*, it is converted into RRT*.
    * @param logger Logger for trace information.
    */
-  DynamicRRTStar(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time,
-                 const TreeSolverPtr& solver, const TraceLoggerPtr& logger);
+  DynamicRRTStar(Eigen::VectorXd& current_configuration, PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver,
+                 const TraceLoggerPtr& logger);
 
   /**
    * @brief Executes the replanning algorithm.

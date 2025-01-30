@@ -120,38 +120,34 @@ protected:
   std::vector<PathPtr> addAdmissibleCurrentPath(const size_t& idx_current_conn, PathPtr& admissible_current_path);
   PathPtr getSubpath1(NodePtr& current_node);
   PathPtr bestExistingSolution(const PathPtr& current_solution);
-  PathPtr bestExistingSolution(const PathPtr& current_solution,
-                               std::multimap<double, std::vector<ConnectionPtr>>& tmp_map);
+  PathPtr bestExistingSolution(const PathPtr& current_solution, std::multimap<double, std::vector<ConnectionPtr>>& tmp_map);
   double maxSolverTime(const graph_time_point& tic, const graph_time_point& tic_cycle);
-  void simplifyAdmissibleOtherPaths(const PathPtr& current_solution_path, const NodePtr& start_node,
-                                    const std::vector<PathPtr>& reset_other_paths);
+  void simplifyAdmissibleOtherPaths(const PathPtr& current_solution_path, const NodePtr& start_node, const std::vector<PathPtr>& reset_other_paths);
   bool mergePathToTree(const PathPtr& path);
   void convertToSubtreeSolution(const PathPtr& net_solution, const std::vector<NodePtr>& black_nodes);
 
-  bool findValidSolution(const std::multimap<double, std::vector<ConnectionPtr>>& map, const double& cost2beat,
-                         std::vector<ConnectionPtr>& solution, double& cost, bool verbose = false);
-  virtual bool findValidSolution(const std::multimap<double, std::vector<ConnectionPtr>>& map, const double& cost2beat,
-                                 std::vector<ConnectionPtr>& solution, double& cost, unsigned int& number_of_candidates,
-                                 bool verbose = false);
+  bool findValidSolution(const std::multimap<double, std::vector<ConnectionPtr>>& map, const double& cost2beat, std::vector<ConnectionPtr>& solution,
+                         double& cost, bool verbose = false);
+  virtual bool findValidSolution(const std::multimap<double, std::vector<ConnectionPtr>>& map, const double& cost2beat, std::vector<ConnectionPtr>& solution,
+                                 double& cost, unsigned int& number_of_candidates, bool verbose = false);
 
   virtual void initFlaggedConnections();
   virtual void clearInvalidConnections();
   virtual void clearFlaggedConnections();
   virtual std::vector<ps_goal_ptr> sortNodes(const NodePtr& node);
   virtual std::vector<NodePtr> startNodes(const std::vector<ConnectionPtr>& subpath1_conn);
-  virtual bool computeConnectingPath(const NodePtr& path1_node_fake, const NodePtr& path2_node,
-                                     const double& diff_subpath_cost, const PathPtr& current_solution,
-                                     const graph_time_point& tic, const graph_time_point& tic_cycle,
-                                     PathPtr& connecting_path, bool& quickly_solved);
+  virtual bool computeConnectingPath(const NodePtr& path1_node_fake, const NodePtr& path2_node, const double& diff_subpath_cost,
+                                     const PathPtr& current_solution, const graph_time_point& tic, const graph_time_point& tic_cycle, PathPtr& connecting_path,
+                                     bool& quickly_solved);
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  MARS(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time,
-       const TreeSolverPtr& solver, const TraceLoggerPtr& logger);
+  MARS(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver,
+       const TraceLoggerPtr& logger);
 
-  MARS(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time,
-       const TreeSolverPtr& solver, const TraceLoggerPtr& logger, const std::vector<PathPtr>& other_paths);
+  MARS(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver,
+       const TraceLoggerPtr& logger, const std::vector<PathPtr>& other_paths);
 
   NetPtr getNet()
   {

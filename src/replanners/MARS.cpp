@@ -37,8 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace openmore
 {
-MARS::MARS(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time,
-           const TreeSolverPtr& solver, const TraceLoggerPtr& logger)
+MARS::MARS(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver,
+           const TraceLoggerPtr& logger)
   : ReplannerBase(current_configuration, current_path, max_time, solver, logger)
 {
   tree_ = current_path_->getTree();
@@ -65,8 +65,8 @@ MARS::MARS(const Eigen::VectorXd& current_configuration, const PathPtr& current_
   // our new custom flag
 }
 
-MARS::MARS(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time,
-           const TreeSolverPtr& solver, const TraceLoggerPtr& logger, const std::vector<PathPtr>& other_paths)
+MARS::MARS(const Eigen::VectorXd& current_configuration, const PathPtr& current_path, const double& max_time, const TreeSolverPtr& solver,
+           const TraceLoggerPtr& logger, const std::vector<PathPtr>& other_paths)
   : MARS(current_configuration, current_path, max_time, solver, logger)
 {
   setOtherPaths(other_paths);
@@ -288,9 +288,8 @@ bool MARS::mergePathToTree(const PathPtr& path)
   assert(goal_node_->getParentConnectionsSize() == 1);
 
   ConnectionPtr new_goal_conn;
-  (goal_node_->getParentConnectionsSize() == 0) ?
-      (new_goal_conn = std::make_shared<Connection>(goal_conn->getParent(), goal_node_, logger_, false)) :
-      (new_goal_conn = std::make_shared<Connection>(goal_conn->getParent(), goal_node_, logger_, true));
+  (goal_node_->getParentConnectionsSize() == 0) ? (new_goal_conn = std::make_shared<Connection>(goal_conn->getParent(), goal_node_, logger_, false)) :
+                                                  (new_goal_conn = std::make_shared<Connection>(goal_conn->getParent(), goal_node_, logger_, true));
 
   new_goal_conn->setCost(goal_conn->getCost());
   new_goal_conn->add();
@@ -375,8 +374,7 @@ std::vector<PathPtr> MARS::addAdmissibleCurrentPath(const size_t& idx_current_co
   {
     if (idx_current_conn < current_path_->getConnectionsSize() - 1)
     {
-      admissible_current_path =
-          current_path_->getSubpathFromNode(current_path_->getConnections().at(idx_current_conn)->getChild());
+      admissible_current_path = current_path_->getSubpathFromNode(current_path_->getConnections().at(idx_current_conn)->getChild());
       reset_other_paths.push_back(admissible_current_path);
       reset_other_paths.insert(reset_other_paths.end(), other_paths_.begin(), other_paths_.end());
     }
@@ -519,8 +517,7 @@ std::vector<NodePtr> MARS::startNodes(const std::vector<ConnectionPtr>& subpath1
         /* If the path is free, you can consider all the nodes but it is useless to consider
          * the last one before the goal (it is already connected to the goal with a straight line) */
 
-        if (conn->getCost() == std::numeric_limits<double>::infinity() &&
-            (not conn->getParent()->getFlag(examined_flag_, false)))
+        if (conn->getCost() == std::numeric_limits<double>::infinity() && (not conn->getParent()->getFlag(examined_flag_, false)))
           start_node_vector.push_back(conn->getParent());
       }
       else
@@ -565,16 +562,15 @@ std::vector<NodePtr> MARS::startNodes(const std::vector<ConnectionPtr>& subpath1
   return start_node_vector;
 }
 
-bool MARS::findValidSolution(const std::multimap<double, std::vector<ConnectionPtr>>& map, const double& cost2beat,
-                             std::vector<ConnectionPtr>& solution, double& cost, bool verbose)
+bool MARS::findValidSolution(const std::multimap<double, std::vector<ConnectionPtr>>& map, const double& cost2beat, std::vector<ConnectionPtr>& solution,
+                             double& cost, bool verbose)
 {
   unsigned int number_of_candidates = 0;
   return findValidSolution(map, cost2beat, solution, cost, number_of_candidates, verbose);
 }
 
-bool MARS::findValidSolution(const std::multimap<double, std::vector<ConnectionPtr>>& map, const double& cost2beat,
-                             std::vector<ConnectionPtr>& solution, double& cost, unsigned int& number_of_candidates,
-                             bool verbose)
+bool MARS::findValidSolution(const std::multimap<double, std::vector<ConnectionPtr>>& map, const double& cost2beat, std::vector<ConnectionPtr>& solution,
+                             double& cost, unsigned int& number_of_candidates, bool verbose)
 {
   solution.clear();
   number_of_candidates = 0;
@@ -605,8 +601,7 @@ bool MARS::findValidSolution(const std::multimap<double, std::vector<ConnectionP
           while (updated_cost_check < std::numeric_limits<double>::infinity() && i < size)
           {
             updated_cost_check += solution_pair.second.at(i)->getCost();
-            if (solution_pair.second.at(i)->getCost() == std::numeric_limits<double>::infinity() &&
-                not solution_pair.second.at(i)->isRecentlyChecked())
+            if (solution_pair.second.at(i)->getCost() == std::numeric_limits<double>::infinity() && not solution_pair.second.at(i)->isRecentlyChecked())
             {
               CNR_INFO(logger_, "no recently checked");
               return false;
@@ -633,8 +628,8 @@ bool MARS::findValidSolution(const std::multimap<double, std::vector<ConnectionP
         while (updated_cost < std::numeric_limits<double>::infinity() && i < size)
         {
           if (verbose)
-            CNR_INFO(logger_, RESET() << CYAN() << "connection: " << solution_pair.second.at(i)
-                                      << " cost: " << solution_pair.second.at(i)->getCost() << RESET());
+            CNR_INFO(logger_,
+                     RESET() << CYAN() << "connection: " << solution_pair.second.at(i) << " cost: " << solution_pair.second.at(i)->getCost() << RESET());
 
           updated_cost += solution_pair.second.at(i)->getCost();
           assert([&]() -> bool {
@@ -657,8 +652,7 @@ bool MARS::findValidSolution(const std::multimap<double, std::vector<ConnectionP
       }
 
       if (verbose)
-        CNR_INFO(logger_,
-                 RESET() << CYAN() << "updated cost: " << updated_cost << " cost2beat: " << cost2beat << RESET());
+        CNR_INFO(logger_, RESET() << CYAN() << "updated cost: " << updated_cost << " cost2beat: " << cost2beat << RESET());
 
       if (updated_cost < cost2beat)
       {
@@ -702,11 +696,9 @@ bool MARS::findValidSolution(const std::multimap<double, std::vector<ConnectionP
           else
           {
             if (verbose)
-              CNR_INFO(logger_, RESET() << CYAN() << "conn " << conn << " already checked, cost: " << conn->getCost()
-                                        << RESET());
+              CNR_INFO(logger_, RESET() << CYAN() << "conn " << conn << " already checked, cost: " << conn->getCost() << RESET());
 
-            assert(std::find(flagged_connections_.begin(), flagged_connections_.end(), conn) <
-                   flagged_connections_.end());
+            assert(std::find(flagged_connections_.begin(), flagged_connections_.end(), conn) < flagged_connections_.end());
 
             if (conn->getCost() == std::numeric_limits<double>::infinity())  // it should not happen..
             {
@@ -731,8 +723,8 @@ bool MARS::findValidSolution(const std::multimap<double, std::vector<ConnectionP
           assert([&]() -> bool {
             if (std::abs(updated_cost - solution_pair.first) > NET_ERROR_TOLERANCE)
             {
-              CNR_INFO(logger_, "updated cost " << updated_cost << " solution_pair.first " << solution_pair.first
-                                                << " NET_ERROR_TOLERANCE " << NET_ERROR_TOLERANCE);
+              CNR_INFO(logger_,
+                       "updated cost " << updated_cost << " solution_pair.first " << solution_pair.first << " NET_ERROR_TOLERANCE " << NET_ERROR_TOLERANCE);
               return false;
             }
             return true;
@@ -753,8 +745,7 @@ bool MARS::findValidSolution(const std::multimap<double, std::vector<ConnectionP
                                                                      // cost infinite)
         {
           if (verbose)
-            CNR_INFO(logger_,
-                     RESET() << CYAN() << "update cost not infinite, no better solutions available -> exit" << RESET());
+            CNR_INFO(logger_, RESET() << CYAN() << "update cost not infinite, no better solutions available -> exit" << RESET());
 
           return false;
         }
@@ -772,8 +763,7 @@ PathPtr MARS::bestExistingSolution(const PathPtr& current_solution)
   std::multimap<double, std::vector<ConnectionPtr>> tmp_map;
   return bestExistingSolution(current_solution, tmp_map);
 }
-PathPtr MARS::bestExistingSolution(const PathPtr& current_solution,
-                                   std::multimap<double, std::vector<ConnectionPtr>>& tmp_map)
+PathPtr MARS::bestExistingSolution(const PathPtr& current_solution, std::multimap<double, std::vector<ConnectionPtr>>& tmp_map)
 {
   tmp_map.clear();
   PathPtr solution;
@@ -785,8 +775,8 @@ PathPtr MARS::bestExistingSolution(const PathPtr& current_solution,
   tmp_map = net_->getConnectionBetweenNodes(current_node, goal_node_, best_cost);
 
   if (informedOnlineReplanning_verbose_)
-    CNR_INFO(logger_, RESET() << CYAN() << tmp_map.size() << " solutions with lower cost found in "
-                              << toSeconds(graph_time::now(), tic) << " seconds!" << RESET());
+    CNR_INFO(logger_,
+             RESET() << CYAN() << tmp_map.size() << " solutions with lower cost found in " << toSeconds(graph_time::now(), tic) << " seconds!" << RESET());
 
 #ifdef GRAPH_DISPLAY_AVAILABLE
   if (informedOnlineReplanning_disp_)
@@ -802,8 +792,7 @@ PathPtr MARS::bestExistingSolution(const PathPtr& current_solution,
 
       n_sol++;
       id = disp_->displayPath(disp_path);
-      disp_->nextButton("Displaying the " + std::to_string(n_sol) + "° existing solution (cost " +
-                        std::to_string(disp_path->cost()) + ")");
+      disp_->nextButton("Displaying the " + std::to_string(n_sol) + "° existing solution (cost " + std::to_string(disp_path->cost()) + ")");
       disp_->clearMarker(id);
     }
     disp_->defaultNodeSize();
@@ -814,9 +803,8 @@ PathPtr MARS::bestExistingSolution(const PathPtr& current_solution,
   double new_cost;
   std::vector<ConnectionPtr> solution_conns;
   tic = graph_time::now();
-  findValidSolution(tmp_map, best_cost, solution_conns, new_cost) ?
-      (solution = std::make_shared<Path>(solution_conns, metrics_, checker_, logger_)) :
-      (solution = current_solution);
+  findValidSolution(tmp_map, best_cost, solution_conns, new_cost) ? (solution = std::make_shared<Path>(solution_conns, metrics_, checker_, logger_)) :
+                                                                    (solution = current_solution);
 
   if (informedOnlineReplanning_verbose_ && not tmp_map.empty())
     CNR_INFO(logger_, RESET() << CYAN() << "Solutions checked in " << toSeconds(graph_time::now(), tic) << " seconds!");
@@ -825,8 +813,7 @@ PathPtr MARS::bestExistingSolution(const PathPtr& current_solution,
   return solution;
 }
 
-void MARS::simplifyAdmissibleOtherPaths(const PathPtr& current_solution_path, const NodePtr& start_node,
-                                        const std::vector<PathPtr>& reset_other_paths)
+void MARS::simplifyAdmissibleOtherPaths(const PathPtr& current_solution_path, const NodePtr& start_node, const std::vector<PathPtr>& reset_other_paths)
 {
   if (start_node == current_solution_path->getGoalNode())
     return;
@@ -859,8 +846,7 @@ double MARS::maxSolverTime(const graph_time_point& tic, const graph_time_point& 
   else if (pathSwitch_cycle_time_mean_ == std::numeric_limits<double>::infinity() || an_obstacle_)
     time = max_time;  // when there is an obstacle or when the cycle time mean has not been defined yet
   else
-    time = std::min((2 - time_percentage_variability_) * pathSwitch_cycle_time_mean_ - toSeconds(toc, tic_cycle),
-                    max_time);
+    time = std::min((2 - time_percentage_variability_) * pathSwitch_cycle_time_mean_ - toSeconds(toc, tic_cycle), max_time);
 
   if (time < 0.0)
     time = 0.0;
@@ -887,9 +873,8 @@ void MARS::convertToSubtreeSolution(const PathPtr& net_solution, const std::vect
   }
 }
 
-bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2_node, const double& diff_subpath_cost,
-                                 const PathPtr& current_solution, const graph_time_point& tic,
-                                 const graph_time_point& tic_cycle, PathPtr& connecting_path, bool& quickly_solved)
+bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2_node, const double& diff_subpath_cost, const PathPtr& current_solution,
+                                 const graph_time_point& tic, const graph_time_point& tic_cycle, PathPtr& connecting_path, bool& quickly_solved)
 {
   assert([&] {
     if (path1_node == path2_node || (path1_node->getConfiguration() - path2_node->getConfiguration()).norm() < 1e-06)
@@ -918,8 +903,8 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
   }
   assert(not black_list.empty());
 
-  SubtreePtr subtree = Subtree::createSubtree(tree_, path1_node, path2_node->getConfiguration(), diff_subpath_cost,
-                                              black_list, true);  // collision check before adding a node
+  SubtreePtr subtree =
+      Subtree::createSubtree(tree_, path1_node, path2_node->getConfiguration(), diff_subpath_cost, black_list, true);  // collision check before adding a node
   assert([&]() -> bool {
     std::vector<NodePtr> leaves;
     subtree->getLeaves(leaves);
@@ -957,21 +942,20 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
   double net_time = maxSolverTime(tic, tic_cycle);
 
   NetPtr net = std::make_shared<Net>(subtree, logger_);
-  std::multimap<double, std::vector<ConnectionPtr>> already_existing_solutions_map = net->getConnectionBetweenNodes(
-      path1_node, path2_node, diff_subpath_cost, black_list, net_time, search_in_subtree);
+  std::multimap<double, std::vector<ConnectionPtr>> already_existing_solutions_map =
+      net->getConnectionBetweenNodes(path1_node, path2_node, diff_subpath_cost, black_list, net_time, search_in_subtree);
   double time_search = toSeconds(graph_time::now(), tic_search);
 
   if (pathSwitch_verbose_)
-    CNR_INFO(logger_, RESET() << YELLOW() << "In the subtree exist " << already_existing_solutions_map.size()
-                              << " paths to path2_node (time to search " << time_search << " s, max time " << net_time
-                              << "s )" << RESET());
+    CNR_INFO(logger_, RESET() << YELLOW() << "In the subtree exist " << already_existing_solutions_map.size() << " paths to path2_node (time to search "
+                              << time_search << " s, max time " << net_time << "s )" << RESET());
 
   tic_search = graph_time::now();
   unsigned int number_of_candidates = 0;
   double already_existing_solution_cost;
   std::vector<ConnectionPtr> already_existing_solution_conn;
-  if (findValidSolution(already_existing_solutions_map, diff_subpath_cost, already_existing_solution_conn,
-                        already_existing_solution_cost, number_of_candidates, false))
+  if (findValidSolution(already_existing_solutions_map, diff_subpath_cost, already_existing_solution_conn, already_existing_solution_cost, number_of_candidates,
+                        false))
   {
     connecting_path = std::make_shared<Path>(already_existing_solution_conn, metrics_, checker_, logger_);
     connecting_path->setTree(tree_);
@@ -980,9 +964,8 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
     assert(already_existing_solution_cost == connecting_path->cost());
 
     if (pathSwitch_verbose_)
-      CNR_INFO(logger_, RESET() << BOLDYELLOW() << "A solution with cost " << already_existing_solution_cost
-                                << " has been found in the subtree in " << toSeconds(graph_time::now(), tic_search)
-                                << " seconds! Making it a solution of the subtree.." << RESET());
+      CNR_INFO(logger_, RESET() << BOLDYELLOW() << "A solution with cost " << already_existing_solution_cost << " has been found in the subtree in "
+                                << toSeconds(graph_time::now(), tic_search) << " seconds! Making it a solution of the subtree.." << RESET());
 
     convertToSubtreeSolution(connecting_path, black_list);
 
@@ -1004,12 +987,11 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
     if (pathSwitch_verbose_)
     {
       if (number_of_candidates > 0)
-        CNR_INFO(logger_, RESET() << YELLOW() << number_of_candidates
-                                  << " candidate solutions found in the subtree but no one was free (check time "
+        CNR_INFO(logger_, RESET() << YELLOW() << number_of_candidates << " candidate solutions found in the subtree but no one was free (check time "
                                   << toSeconds(graph_time::now(), tic_search) << " seconds)" << RESET());
       else
-        CNR_INFO(logger_, RESET() << YELLOW() << "No candidate solutions found in the subtree (search time "
-                                  << toSeconds(graph_time::now(), tic_search) << " seconds)" << RESET());
+        CNR_INFO(logger_, RESET() << YELLOW() << "No candidate solutions found in the subtree (search time " << toSeconds(graph_time::now(), tic_search)
+                                  << " seconds)" << RESET());
     }
 
     // Remove the invalid branches from the subtree
@@ -1027,8 +1009,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
    * by diff_subpath_cost is used to sample the space. Outside of this ellipsoid,
    * the nodes would create an inconvenient connecting_path */
 
-  SamplerPtr sampler = std::make_shared<InformedSampler>(path1_node->getConfiguration(), path2_node->getConfiguration(),
-                                                         lb_, ub_, logger_, diff_subpath_cost);
+  SamplerPtr sampler = std::make_shared<InformedSampler>(path1_node->getConfiguration(), path2_node->getConfiguration(), lb_, ub_, logger_, diff_subpath_cost);
 
   //  assert([&]
   //  {
@@ -1076,8 +1057,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
 
     available_search_time = solver_time - toSeconds(graph_time::now(), tic_before_search);
     if (pathSwitch_verbose_)
-      CNR_INFO(logger_, RESET() << YELLOW() << "Searching for a connecting path...max time: " << available_search_time
-                                << RESET());
+      CNR_INFO(logger_, RESET() << YELLOW() << "Searching for a connecting path...max time: " << available_search_time << RESET());
 
     auto tic_solver = graph_time::now();
     solver_->addGoal(path2_node_fake, available_search_time * 0.85);
@@ -1096,8 +1076,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
 
       if (pathSwitch_verbose_)
       {
-        CNR_INFO(logger_, RESET() << YELLOW() << "Direct connection NOT found (time "
-                                  << toSeconds(toc_solver, tic_solver) << " s)" << RESET());
+        CNR_INFO(logger_, RESET() << YELLOW() << "Direct connection NOT found (time " << toSeconds(toc_solver, tic_solver) << " s)" << RESET());
         CNR_INFO(logger_, RESET() << YELLOW() << "Solving...max time: " << available_search_time << RESET());
       }
 
@@ -1109,8 +1088,8 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
     if (solver_has_solved)
     {
       if (pathSwitch_verbose_)
-        CNR_INFO(logger_, RESET() << YELLOW() << "Solved in " << toSeconds(toc_solver, tic_solver)
-                                  << " s (direct connection to goal: " << quickly_solved << ")" << RESET());
+        CNR_INFO(logger_, RESET() << YELLOW() << "Solved in " << toSeconds(toc_solver, tic_solver) << " s (direct connection to goal: " << quickly_solved << ")"
+                                  << RESET());
 
       bool subtree_valid = true;
       ConnectionPtr obstructed_connection = nullptr;
@@ -1182,8 +1161,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
           CNR_INFO(logger_, RESET() << BOLDYELLOW() << "clone " << *clone << RESET());
           CNR_INFO(logger_, RESET() << BOLDRED() << "connecting path " << *connecting_path << RESET());
           for (const NodePtr& n : subtree_nodes)
-            CNR_INFO(logger_, RESET() << BOLDWHITE() << "subtree node " << n->getConfiguration().transpose() << " ("
-                                      << n << ")" << RESET());
+            CNR_INFO(logger_, RESET() << BOLDWHITE() << "subtree node " << n->getConfiguration().transpose() << " (" << n << ")" << RESET());
 
           return false;
         }());
@@ -1199,8 +1177,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
           subtree->hideFromSubtree(obstructed_connection->getChild());
 
         if (pathSwitch_verbose_)
-          CNR_INFO(logger_,
-                   RESET() << YELLOW() << "Lazy check detected that subtree was not valid, compute again.." << RESET());
+          CNR_INFO(logger_, RESET() << YELLOW() << "Lazy check detected that subtree was not valid, compute again.." << RESET());
       }
     }
     else
@@ -1228,11 +1205,11 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
     std::vector<ConnectionPtr> connecting_path_conn;
 
     auto tic_net = graph_time::now();
-    std::multimap<double, std::vector<ConnectionPtr>> connecting_paths_map = net->getConnectionBetweenNodes(
-        path1_node, path2_node_fake, diff_subpath_cost, black_list, net_time, search_in_subtree);
+    std::multimap<double, std::vector<ConnectionPtr>> connecting_paths_map =
+        net->getConnectionBetweenNodes(path1_node, path2_node_fake, diff_subpath_cost, black_list, net_time, search_in_subtree);
     if (pathSwitch_verbose_)
-      CNR_INFO(logger_, RESET() << YELLOW() << "Net search in the subtree found " << connecting_paths_map.size()
-                                << " solutions in " << toSeconds(graph_time::now(), tic_net) << " s" << RESET());
+      CNR_INFO(logger_, RESET() << YELLOW() << "Net search in the subtree found " << connecting_paths_map.size() << " solutions in "
+                                << toSeconds(graph_time::now(), tic_net) << " s" << RESET());
 
     /*To be sure map contains the connecting path computed*/
     double cost = 0.0;
@@ -1251,16 +1228,14 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
 
     if (not connecting_paths_map.empty())
     {
-      if (findValidSolution(connecting_paths_map, diff_subpath_cost, connecting_path_conn, connecting_path_cost,
-                            number_of_candidates))
+      if (findValidSolution(connecting_paths_map, diff_subpath_cost, connecting_path_conn, connecting_path_cost, number_of_candidates))
       {
         ConnectionPtr last_conn = connecting_path_conn.back();
 
         assert(last_conn != nullptr);
         assert(last_conn->getChild() == path2_node_fake);
 
-        ConnectionPtr new_conn = std::make_shared<Connection>(last_conn->getParent(), path2_node, logger_,
-                                                              (path2_node->getParentConnectionsSize() > 0));
+        ConnectionPtr new_conn = std::make_shared<Connection>(last_conn->getParent(), path2_node, logger_, (path2_node->getParentConnectionsSize() > 0));
         new_conn->setCost(last_conn->getCost());
         new_conn->add();
 
@@ -1273,15 +1248,13 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
         assert(last_conn->isRecentlyChecked());
         new_conn->setRecentlyChecked(last_conn->isRecentlyChecked());
 
-        std::vector<ConnectionPtr>::iterator it =
-            std::find(flagged_connections_.begin(), flagged_connections_.end(), last_conn);
+        std::vector<ConnectionPtr>::iterator it = std::find(flagged_connections_.begin(), flagged_connections_.end(), last_conn);
         assert(it < flagged_connections_.end());
         *it = new_conn;
 
         last_conn->remove();
 
-        assert(connecting_path->cost() == std::numeric_limits<double>::infinity() ||
-               connecting_path->cost() < diff_subpath_cost);
+        assert(connecting_path->cost() == std::numeric_limits<double>::infinity() || connecting_path->cost() < diff_subpath_cost);
 
 #ifdef GRAPH_DISPLAY_AVAILABLE
         if (pathSwitch_disp_)
@@ -1335,9 +1308,7 @@ bool MARS::computeConnectingPath(const NodePtr& path1_node, const NodePtr& path2
     else
     {
       if (pathSwitch_verbose_)
-        CNR_INFO(logger_, RESET() << YELLOW()
-                                  << "No solutions with cost less than diff_subpath_cost found in the subtree"
-                                  << RESET());
+        CNR_INFO(logger_, RESET() << YELLOW() << "No solutions with cost less than diff_subpath_cost found in the subtree" << RESET());
     }
   }
 
@@ -1355,8 +1326,7 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
   auto tic = graph_time::now();
   graph_time_point toc, tic_cycle, toc_cycle;
 
-  (pathSwitch_disp_ == true) ? (pathSwitch_max_time_ = std::numeric_limits<double>::infinity()) :
-                               (pathSwitch_max_time_ = available_time_);
+  (pathSwitch_disp_ == true) ? (pathSwitch_max_time_ = std::numeric_limits<double>::infinity()) : (pathSwitch_max_time_ = available_time_);
 
   double time = pathSwitch_max_time_;
   std::vector<double> time_vector;
@@ -1406,8 +1376,7 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
     remaining_goals--;
 
     if (pathSwitch_disp_ || pathSwitch_verbose_)
-      CNR_INFO(logger_, RESET() << BOLDBLUE() << "path1_node (" << path1_node
-                                << "): " << path1_node->getConfiguration().transpose() << " -> path2_node ("
+      CNR_INFO(logger_, RESET() << BOLDBLUE() << "path1_node (" << path1_node << "): " << path1_node->getConfiguration().transpose() << " -> path2_node ("
                                 << path2_node << "): " << path2_node->getConfiguration().transpose() << RESET());
 
     std::vector<ConnectionPtr> path2_subpath_conn;
@@ -1434,8 +1403,7 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
         double search_time = toSeconds(graph_time::now(), tic_map);
 
         tic_map = graph_time::now();
-        if (findValidSolution(path2_subpath_map, path2_subpath_cost, better_path2_subpath_conn,
-                              better_path2_subpath_cost))
+        if (findValidSolution(path2_subpath_map, path2_subpath_cost, better_path2_subpath_conn, better_path2_subpath_cost))
         {
           path2_subpath_conn.clear();
           path2_subpath_conn = better_path2_subpath_conn;
@@ -1445,27 +1413,22 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
           assert(better_path2_subpath_cost == path2_subpath->cost());
 
           if (pathSwitch_verbose_)
-            CNR_INFO(logger_, RESET() << BLUE() << "A better path2_subpath has been found!\n"
-                                      << *path2_subpath << RESET());
+            CNR_INFO(logger_, RESET() << BLUE() << "A better path2_subpath has been found!\n" << *path2_subpath << RESET());
         }
 
         if (pathSwitch_verbose_)
           CNR_INFO(logger_, RESET() << BLUE() << "Time to search for a better subpath2: " << search_time
-                                    << ", time to check solutions: " << toSeconds(graph_time::now(), tic_map)
-                                    << RESET());
+                                    << ", time to check solutions: " << toSeconds(graph_time::now(), tic_map) << RESET());
       }
     }
 
-    double diff_subpath_cost =
-        candidate_solution_cost - path2_subpath_cost;  // it is the maximum cost to make the connecting_path convenient
-    double utopia = ps_goal->utopia;                   // utopia is the minimum cost that the connecting_path can have
+    double diff_subpath_cost = candidate_solution_cost - path2_subpath_cost;  // it is the maximum cost to make the connecting_path convenient
+    double utopia = ps_goal->utopia;                                          // utopia is the minimum cost that the connecting_path can have
 
     if (pathSwitch_disp_ || pathSwitch_verbose_)
     {
-      CNR_INFO(logger_, RESET() << BLUE() << "candidate_solution_cost: " << candidate_solution_cost
-                                << " subpath2_cost: " << path2_subpath_cost << RESET());
-      CNR_INFO(logger_,
-               RESET() << BLUE() << "diff_subpath_cost: " << diff_subpath_cost << " utopia: " << utopia << RESET());
+      CNR_INFO(logger_, RESET() << BLUE() << "candidate_solution_cost: " << candidate_solution_cost << " subpath2_cost: " << path2_subpath_cost << RESET());
+      CNR_INFO(logger_, RESET() << BLUE() << "diff_subpath_cost: " << diff_subpath_cost << " utopia: " << utopia << RESET());
     }
 
     /* The utopia between the two nodes must be less than
@@ -1482,8 +1445,8 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
           {
             CNR_INFO(logger_, "path1_node: " << *path1_node << path1_node);
             CNR_INFO(logger_, "path2 contains path1_node: \n" << *path2_subpath);
-            CNR_INFO(logger_, "curr sol cost: %f, utopia: %f, diff_subpath_cost: %f, cost subpath2: %f",
-                     candidate_solution_cost, utopia, diff_subpath_cost, path2_subpath->cost());
+            CNR_INFO(logger_, "curr sol cost: %f, utopia: %f, diff_subpath_cost: %f, cost subpath2: %f", candidate_solution_cost, utopia, diff_subpath_cost,
+                     path2_subpath->cost());
 
 #ifdef GRAPH_DISPLAY_AVAILABLE
             disp_->displayNode(path1_node);
@@ -1500,15 +1463,13 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
       bool quickly_solved = false;
 
       auto tic_connecting_path = graph_time::now();
-      bool connecting_path_found = computeConnectingPath(path1_node, path2_node, diff_subpath_cost, current_path, tic,
-                                                         tic_cycle, connecting_path, quickly_solved);
+      bool connecting_path_found =
+          computeConnectingPath(path1_node, path2_node, diff_subpath_cost, current_path, tic, tic_cycle, connecting_path, quickly_solved);
 
       if (pathSwitch_verbose_)
       {
-        CNR_INFO(logger_, RESET() << BLUE() << "Time for computing connecting path "
-                                  << toSeconds(graph_time::now(), tic_connecting_path) << " s"
-                                  << " max ps time " << (pathSwitch_max_time_ - toSeconds(graph_time::now(), tic))
-                                  << RESET());
+        CNR_INFO(logger_, RESET() << BLUE() << "Time for computing connecting path " << toSeconds(graph_time::now(), tic_connecting_path) << " s"
+                                  << " max ps time " << (pathSwitch_max_time_ - toSeconds(graph_time::now(), tic)) << RESET());
       }
 
       if (connecting_path_found)
@@ -1573,18 +1534,15 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
 
         toc_cycle = graph_time::now();
         if (pathSwitch_verbose_)
-          CNR_INFO(logger_,
-                   RESET() << BOLDYELLOW() << "SOLVED->cycle time: " << toSeconds(toc_cycle, tic_cycle) << RESET());
+          CNR_INFO(logger_, RESET() << BOLDYELLOW() << "SOLVED->cycle time: " << toSeconds(toc_cycle, tic_cycle) << RESET());
 
         if (not quickly_solved)  // not directly connected, usually it is very fast and it would alterate the mean value
         {
           time_vector.push_back(toSeconds(toc_cycle, tic_cycle));
-          pathSwitch_cycle_time_mean_ =
-              std::accumulate(time_vector.begin(), time_vector.end(), 0.0) / ((double)time_vector.size());
+          pathSwitch_cycle_time_mean_ = std::accumulate(time_vector.begin(), time_vector.end(), 0.0) / ((double)time_vector.size());
 
           if (pathSwitch_verbose_)
-            CNR_INFO(logger_,
-                     RESET() << BLUE() << "cycle time mean updated: " << pathSwitch_cycle_time_mean_ << RESET());
+            CNR_INFO(logger_, RESET() << BLUE() << "cycle time mean updated: " << pathSwitch_cycle_time_mean_ << RESET());
         }
         else
         {
@@ -1604,8 +1562,7 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
           pathSwitch_cycle_time_mean_ = 1.2 * pathSwitch_cycle_time_mean_;
 
           if (pathSwitch_verbose_)
-            CNR_INFO(logger_, RESET() << BLUE() << "cycle time mean increased of 20%: " << pathSwitch_cycle_time_mean_
-                                      << RESET());
+            CNR_INFO(logger_, RESET() << BLUE() << "cycle time mean increased of 20%: " << pathSwitch_cycle_time_mean_ << RESET());
         }
 
 #ifdef GRAPH_DISPLAY_AVAILABLE
@@ -1647,8 +1604,7 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
     {
       toc = graph_time::now();
       time = pathSwitch_max_time_ - toSeconds(toc, tic);
-      CNR_INFO(logger_, RESET() << BLUE() << "cycle time mean: " << pathSwitch_cycle_time_mean_
-                                << " -> available time: " << time << RESET());
+      CNR_INFO(logger_, RESET() << BLUE() << "cycle time mean: " << pathSwitch_cycle_time_mean_ << " -> available time: " << time << RESET());
     }
 
     toc = graph_time::now();
@@ -1658,17 +1614,15 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
         time <= 0.0)  // if there is an obstacle, you should use the entire available time to find a feasible solution
     {
       if (pathSwitch_verbose_)
-        CNR_INFO(logger_, RESET() << BLUE() << "TIME OUT! max time: " << pathSwitch_max_time_
-                                  << ", time_available: " << time << ", time needed for a new cycle: "
-                                  << time_percentage_variability_ * pathSwitch_cycle_time_mean_ << "; "
-                                  << remaining_goals << " goals not considered." << RESET());
+        CNR_INFO(logger_, RESET() << BLUE() << "TIME OUT! max time: " << pathSwitch_max_time_ << ", time_available: " << time
+                                  << ", time needed for a new cycle: " << time_percentage_variability_ * pathSwitch_cycle_time_mean_ << "; " << remaining_goals
+                                  << " goals not considered." << RESET());
 
       break;
     }
 
     if (pathSwitch_verbose_)
-      CNR_INFO(logger_,
-               RESET() << BLUE() << "PathSwitch cycle time: " << toSeconds(graph_time::now(), tic_cycle) << RESET());
+      CNR_INFO(logger_, RESET() << BLUE() << "PathSwitch cycle time: " << toSeconds(graph_time::now(), tic_cycle) << RESET());
   }
 
   if (pathSwitch_verbose_ || pathSwitch_disp_)
@@ -1685,11 +1639,9 @@ bool MARS::pathSwitch(const PathPtr& current_path, const NodePtr& path1_node, Pa
 #endif
 
     if (success)
-      CNR_INFO(logger_, RESET() << BLUE() << "PathSwitch has found a solution with cost: " << new_path->cost()
-                                << ". path1_node (" << path1_node_of_sol
-                                << "): " << path1_node_of_sol->getConfiguration().transpose() << " -> path2_node ("
-                                << path2_node_of_sol << "): " << path2_node_of_sol->getConfiguration().transpose()
-                                << RESET());
+      CNR_INFO(logger_, RESET() << BLUE() << "PathSwitch has found a solution with cost: " << new_path->cost() << ". path1_node (" << path1_node_of_sol
+                                << "): " << path1_node_of_sol->getConfiguration().transpose() << " -> path2_node (" << path2_node_of_sol
+                                << "): " << path2_node_of_sol->getConfiguration().transpose() << RESET());
     else
       CNR_INFO(logger_, RESET() << BLUE() << "PathSwitch has NOT found a solution" << RESET());
   }
@@ -1725,8 +1677,7 @@ PathPtr MARS::getSubpath1(NodePtr& current_node)
     }
   }
 
-  CNR_ERROR(logger_, "Current configuration (" << current_configuration_.transpose()
-                                               << ") does not match any node of the current path!");
+  CNR_ERROR(logger_, "Current configuration (" << current_configuration_.transpose() << ") does not match any node of the current path!");
   CNR_ERROR(logger_, "Current path: " << *current_path_);
   assert(0);
 
@@ -1739,11 +1690,9 @@ void MARS::initFlaggedConnections()
 
   flagged_connections_ = current_path_->getConnections();
   for (const PathPtr& p : other_paths_)
-    flagged_connections_.insert(flagged_connections_.end(), p->getConnectionsConst().begin(),
-                                p->getConnectionsConst().end());
+    flagged_connections_.insert(flagged_connections_.end(), p->getConnectionsConst().begin(), p->getConnectionsConst().end());
 
-  std::for_each(flagged_connections_.begin(), flagged_connections_.end(),
-                [&](ConnectionPtr& checked_conn) -> void { checked_conn->setRecentlyChecked(true); });
+  std::for_each(flagged_connections_.begin(), flagged_connections_.end(), [&](ConnectionPtr& checked_conn) -> void { checked_conn->setRecentlyChecked(true); });
 }
 
 void MARS::clearFlaggedConnections()
@@ -1830,8 +1779,7 @@ bool MARS::informedOnlineReplanning(const double& max_time)
   if (informedOnlineReplanning_verbose_)
     CNR_INFO(logger_, RESET() << GREEN() << "Searching for an already existing solution.." << RESET());
 
-  full_net_search_ ?
-      (replanned_path = bestExistingSolution(subpath1)) :  // if a solution is not found, replanned_path = subpath1
+  full_net_search_ ? (replanned_path = bestExistingSolution(subpath1)) :  // if a solution is not found, replanned_path = subpath1
       (replanned_path = subpath1);
 
   replanned_path_cost = replanned_path->cost();
@@ -1845,14 +1793,12 @@ bool MARS::informedOnlineReplanning(const double& max_time)
     assert(replanned_path->cost() < std::numeric_limits<double>::infinity());
 
     if (informedOnlineReplanning_verbose_)
-      CNR_INFO(logger_, RESET() << GREEN() << "A ready-to-use solution has been found, cost: " << replanned_path_cost
-                                << RESET());
+      CNR_INFO(logger_, RESET() << GREEN() << "A ready-to-use solution has been found, cost: " << replanned_path_cost << RESET());
   }
   else
   {
     if (informedOnlineReplanning_verbose_)
-      CNR_INFO(logger_, RESET() << GREEN() << "A solution better than subpath1 has not been found, cost: "
-                                << replanned_path_cost << RESET());
+      CNR_INFO(logger_, RESET() << GREEN() << "A solution better than subpath1 has not been found, cost: " << replanned_path_cost << RESET());
   }
 
   assert(replanned_path->getTree() == tree_);
@@ -1942,8 +1888,7 @@ bool MARS::informedOnlineReplanning(const double& max_time)
 
     if (informedOnlineReplanning_verbose_)
       CNR_INFO(logger_, RESET() << GREEN() << "available time: " << available_time_
-                                << ", min required time to call PathSwitch: " << min_time_to_launch_pathSwitch
-                                << RESET());
+                                << ", min required time to call PathSwitch: " << min_time_to_launch_pathSwitch << RESET());
 
     if (available_time_ >= min_time_to_launch_pathSwitch)
     {
@@ -1959,8 +1904,7 @@ bool MARS::informedOnlineReplanning(const double& max_time)
 
       assert((solved && new_path->getTree() != nullptr) || (not solved));
       assert([&]() -> bool {
-        if (std::find(start_node_vector.begin(), start_node_vector.end(), start_node_for_pathSwitch) >=
-            start_node_vector.end())
+        if (std::find(start_node_vector.begin(), start_node_vector.end(), start_node_for_pathSwitch) >= start_node_vector.end())
         {
           return true;
         }
@@ -1969,11 +1913,9 @@ bool MARS::informedOnlineReplanning(const double& max_time)
           for (const NodePtr& n : start_node_vector)
           {
             if (n == start_node_for_pathSwitch)
-              CNR_INFO(logger_,
-                       RESET() << BOLDYELLOW() << n->getConfiguration().transpose() << " (" << n << ")" << RESET());
+              CNR_INFO(logger_, RESET() << BOLDYELLOW() << n->getConfiguration().transpose() << " (" << n << ")" << RESET());
             else
-              CNR_INFO(logger_,
-                       RESET() << BOLDYELLOW() << n->getConfiguration().transpose() << " (" << n << ")" << RESET());
+              CNR_INFO(logger_, RESET() << BOLDYELLOW() << n->getConfiguration().transpose() << " (" << n << ")" << RESET());
           }
           return false;
         }
@@ -1985,8 +1927,7 @@ bool MARS::informedOnlineReplanning(const double& max_time)
       solved = false;
 
       if (informedOnlineReplanning_verbose_)
-        CNR_INFO(logger_, RESET() << GREEN()
-                                  << "Not enough time to call PathSwitch, available time: " << available_time_
+        CNR_INFO(logger_, RESET() << GREEN() << "Not enough time to call PathSwitch, available time: " << available_time_
                                   << " min time to call PathSwitch: " << min_time_to_launch_pathSwitch << RESET());
     }
 
@@ -2017,11 +1958,10 @@ bool MARS::informedOnlineReplanning(const double& max_time)
         {
           double subpath_to_start_node_for_pathSwitch_cost;
           std::multimap<double, std::vector<ConnectionPtr>> map_to_start_node_for_pathSwitch =
-              net_->getConnectionBetweenNodes(current_node, start_node_for_pathSwitch,
-                                              subpath_to_start_node_for_pathSwitch->cost(), {});
+              net_->getConnectionBetweenNodes(current_node, start_node_for_pathSwitch, subpath_to_start_node_for_pathSwitch->cost(), {});
 
-          if (findValidSolution(map_to_start_node_for_pathSwitch, subpath_to_start_node_for_pathSwitch->cost(),
-                                candidate_solution_conn, subpath_to_start_node_for_pathSwitch_cost))
+          if (findValidSolution(map_to_start_node_for_pathSwitch, subpath_to_start_node_for_pathSwitch->cost(), candidate_solution_conn,
+                                subpath_to_start_node_for_pathSwitch_cost))
           {
             if (not reverse_start_nodes_)
             {
@@ -2042,8 +1982,7 @@ bool MARS::informedOnlineReplanning(const double& max_time)
           candidate_solution_conn = subpath_to_start_node_for_pathSwitch->getConnections();
         }
 
-        candidate_solution_conn.insert(candidate_solution_conn.end(), new_path->getConnectionsConst().begin(),
-                                       new_path->getConnectionsConst().end());
+        candidate_solution_conn.insert(candidate_solution_conn.end(), new_path->getConnectionsConst().begin(), new_path->getConnectionsConst().end());
         candidate_solution = std::make_shared<Path>(candidate_solution_conn, metrics_, checker_, logger_);
         candidate_solution->setTree(tree_);
       }
@@ -2057,8 +1996,8 @@ bool MARS::informedOnlineReplanning(const double& max_time)
       if (candidate_solution->cost() < replanned_path_cost)
       {
         if (informedOnlineReplanning_verbose_ || informedOnlineReplanning_disp_)
-          CNR_INFO(logger_, RESET() << GREEN() << "new path found, cost: " << candidate_solution->cost()
-                                    << " previous cost: " << replanned_path_cost << RESET());
+          CNR_INFO(logger_,
+                   RESET() << GREEN() << "new path found, cost: " << candidate_solution->cost() << " previous cost: " << replanned_path_cost << RESET());
 
         if (first_sol)
         {
@@ -2109,8 +2048,8 @@ bool MARS::informedOnlineReplanning(const double& max_time)
       else
       {
         if (informedOnlineReplanning_verbose_ || informedOnlineReplanning_disp_)
-          CNR_INFO(logger_, RESET() << GREEN() << "NO better path found, cost: " << candidate_solution->cost()
-                                    << " previous cost: " << replanned_path_cost << RESET());
+          CNR_INFO(logger_,
+                   RESET() << GREEN() << "NO better path found, cost: " << candidate_solution->cost() << " previous cost: " << replanned_path_cost << RESET());
       }
 
       toc_cycle = graph_time::now();
@@ -2136,8 +2075,7 @@ bool MARS::informedOnlineReplanning(const double& max_time)
 
             double best_replanned_path_cost;
             std::vector<ConnectionPtr> best_replanned_path_conns;
-            if (findValidSolution(best_replanned_path_map, replanned_path->cost(), best_replanned_path_conns,
-                                  best_replanned_path_cost))
+            if (findValidSolution(best_replanned_path_map, replanned_path->cost(), best_replanned_path_conns, best_replanned_path_cost))
             {
               replanned_path = std::make_shared<Path>(best_replanned_path_conns, metrics_, checker_, logger_);
               replanned_path->setTree(tree_);
@@ -2203,8 +2141,7 @@ bool MARS::informedOnlineReplanning(const double& max_time)
 
   }  // end while(j>=0) cycle
 
-  std::for_each(examined_nodes.begin(), examined_nodes.end(),
-                [&](NodePtr& examined_node) -> void { examined_node->setFlag(examined_flag_, false); });
+  std::for_each(examined_nodes.begin(), examined_nodes.end(), [&](NodePtr& examined_node) -> void { examined_node->setFlag(examined_flag_, false); });
 
   if (success_)
   {
@@ -2221,29 +2158,27 @@ bool MARS::informedOnlineReplanning(const double& max_time)
       net_search_time = available_time_;
 
     if (informedOnlineReplanning_verbose_)
-      CNR_INFO(logger_, RESET() << GREEN() << "Time before net search: " << available_time_
-                                << ", max net time: " << net_search_time << RESET());
+      CNR_INFO(logger_, RESET() << GREEN() << "Time before net search: " << available_time_ << ", max net time: " << net_search_time << RESET());
 
     auto tic_net_search = graph_time::now();
     std::multimap<double, std::vector<ConnectionPtr>> best_replanned_path_map =
         net_->getConnectionBetweenNodes(current_node, goal_node_, replanned_path->cost(), {}, net_search_time * 0.8);
     auto toc_net_search = graph_time::now();
     if (toSeconds(toc_net_search, tic_net_search) > net_search_time / 0.5 && net_search_time > 0.0)
-      throw std::runtime_error("net too much time: " + std::to_string(toSeconds(toc_net_search, tic_net_search)) +
-                               " max time " + std::to_string(net_search_time));
+      throw std::runtime_error("net too much time: " + std::to_string(toSeconds(toc_net_search, tic_net_search)) + " max time " +
+                               std::to_string(net_search_time));
 
     double best_replanned_path_cost;
     std::vector<ConnectionPtr> best_replanned_path_conns;
     auto tic_find_sol = graph_time::now();
-    if (findValidSolution(best_replanned_path_map, replanned_path->cost(), best_replanned_path_conns,
-                          best_replanned_path_cost))
+    if (findValidSolution(best_replanned_path_map, replanned_path->cost(), best_replanned_path_conns, best_replanned_path_cost))
     {
       replanned_path = std::make_shared<Path>(best_replanned_path_conns, metrics_, checker_, logger_);
       replanned_path->setTree(tree_);
 
       if (informedOnlineReplanning_verbose_)
-        CNR_INFO(logger_, RESET() << GREEN() << "A better path exists! Cost: " << replanned_path->cost()
-                                  << " previous cost: " << replanned_path_cost << RESET());
+        CNR_INFO(logger_,
+                 RESET() << GREEN() << "A better path exists! Cost: " << replanned_path->cost() << " previous cost: " << replanned_path_cost << RESET());
 
       replanned_path_cost = replanned_path->cost();
     }
@@ -2252,9 +2187,8 @@ bool MARS::informedOnlineReplanning(const double& max_time)
     assert(replanned_path->cost() <= subpath1->cost());
 
     if (informedOnlineReplanning_verbose_)
-      CNR_INFO(logger_, RESET() << GREEN() << "At the end of replanning, in the graph there are "
-                                << best_replanned_path_map.size() << " paths better the one found! (found in "
-                                << toSeconds(toc_net_search, tic_net_search) << " s), time to check solutions "
+      CNR_INFO(logger_, RESET() << GREEN() << "At the end of replanning, in the graph there are " << best_replanned_path_map.size()
+                                << " paths better the one found! (found in " << toSeconds(toc_net_search, tic_net_search) << " s), time to check solutions "
                                 << toSeconds(toc_find_sol, tic_find_sol) << " s" << RESET());
 
     replanned_path_ = replanned_path;
@@ -2266,8 +2200,8 @@ bool MARS::informedOnlineReplanning(const double& max_time)
 
     if (informedOnlineReplanning_verbose_ || informedOnlineReplanning_disp_)
     {
-      CNR_INFO(logger_, RESET() << GREEN() << "InformedOnlineReplanning has found a solution with cost: "
-                                << replanned_path_->cost() << " in " << time_replanning_ << "seconds." << RESET());
+      CNR_INFO(logger_, RESET() << GREEN() << "InformedOnlineReplanning has found a solution with cost: " << replanned_path_->cost() << " in "
+                                << time_replanning_ << "seconds." << RESET());
     }
   }
   else
@@ -2333,8 +2267,7 @@ bool MARS::replan()
   {
     for (PathPtr& p : other_paths_)
     {
-      if (p->splitConnection(current_path_->getConnectionsConst().at(conn_idx),
-                             current_path_->getConnectionsConst().at(conn_idx + 1), conn))
+      if (p->splitConnection(current_path_->getConnectionsConst().at(conn_idx), current_path_->getConnectionsConst().at(conn_idx + 1), conn))
         other_paths_changed.push_back(p);
     }
   }
@@ -2393,10 +2326,8 @@ bool MARS::replan()
       }
       else
       {
-        assert(conn->getParent()->getConfiguration() ==
-               current_path_->getConnections().at(conn_idx)->getParent()->getConfiguration());
-        assert(conn->getChild()->getConfiguration() ==
-               current_path_->getConnections().at(conn_idx)->getChild()->getConfiguration());
+        assert(conn->getParent()->getConfiguration() == current_path_->getConnections().at(conn_idx)->getParent()->getConfiguration());
+        assert(conn->getChild()->getConfiguration() == current_path_->getConnections().at(conn_idx)->getChild()->getConfiguration());
 
         for (PathPtr& p : other_paths_changed)
         {
@@ -2431,8 +2362,7 @@ bool MARS::replan()
     {
       if (replanned_path_->getNodes().front() != current_node)
       {
-        CNR_INFO(logger_, "replanned path first node:\n"
-                              << *replanned_path_->getNodes().front() << replanned_path_->getNodes().front());
+        CNR_INFO(logger_, "replanned path first node:\n" << *replanned_path_->getNodes().front() << replanned_path_->getNodes().front());
         CNR_INFO(logger_, "replan node:\n" << *current_node << current_node);
         CNR_INFO(logger_, "current path:\n" << *current_path_);
         CNR_INFO(logger_, "replanned path:\n" << *replanned_path_);
