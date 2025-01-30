@@ -2025,8 +2025,8 @@ bool MARS::informedOnlineReplanning(const double& max_time)
             {
               start_node_vector.clear();
               start_node_vector = startNodes(candidate_solution_conn);  // if a solution different from
-                                                                        // subpath_to_start_node_for_pathSwitch is found,
-                                                                        // update the nodes
+                                                                        // subpath_to_start_node_for_pathSwitch is
+                                                                        // found, update the nodes
               j = start_node_vector.size();
             }
           }

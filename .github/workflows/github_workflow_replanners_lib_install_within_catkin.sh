@@ -24,6 +24,7 @@ echo "Cloning replanners_lib repository into $SRC_DIR"
 git clone https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib.git $SRC_DIR/replanners_lib
 
 # Build the workspace
+cd $WORKSPACE_DIR
 echo "Building the Catkin workspace"
 catkin config --extend /opt/ros/noetic
 catkin build

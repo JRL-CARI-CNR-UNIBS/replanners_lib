@@ -278,8 +278,8 @@ bool DynamicRRT::regrowRRT(NodePtr& node)
       assert(new_node->getParentConnectionsSize() == 1);
       new_node->getParentConnections().front()->setRecentlyChecked(true);
       checked_connections_.push_back(new_node->getParentConnections().front());  // this line is the reason why solver_
-                                                                                 // is not in charge of re-build the tree
-                                                                                 // here..
+                                                                                 // is not in charge of re-build the
+                                                                                 // tree here..
 
       if ((new_node->getConfiguration() - node->getConfiguration()).norm() < max_distance)
       {
