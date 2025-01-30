@@ -15,8 +15,10 @@ mkdir -p $SRC_DIR
 cd $WORKSPACE_DIR
 
 # Clone graph_corea and replanners_lib into the src folder 
+cd $SRC_DIR
+
 echo "Cloning graph_core repository into $SRC_DIR"
-git clone https://github.com/JRL-CARI-CNR-UNIBS/graph_core.git $SRC_DIR/graph_core
+git clone https://github.com/JRL-CARI-CNR-UNIBS/graph_core.git 
 
 echo "Cloning replanners_lib repository into $SRC_DIR"
 git clone https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib.git $SRC_DIR/replanners_lib
