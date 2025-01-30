@@ -34,3 +34,5 @@
 *.txt.user*
 *kdev4*
 *.autosave
+
+include/openmore/replanners/config/replanners_lib_config.h
