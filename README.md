@@ -22,11 +22,19 @@ This is the list of the currently implemented replanners:
 5. [MPRRT](https://ieeexplore.ieee.org/document/7027233)
 
 ## Build & Install
-Dependencies are automatically downloaded using [CPM](https://github.com/cpm-cmake/CPM.cmake). Otherwise you can downlaod them using [vcstool](https://github.com/dirk-thomas/vcstool) and the [`deps.repos` file](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/deps.repos). Then, follow this instructions to build:
+Downlaod dependencies using [vcstool](https://github.com/dirk-thomas/vcstool) and the [`deps.repos` file](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/deps.repos). Within your workspace, do:
+```bash
+mkdir -p openmore_ws/src && cd openmore_ws/src
+git clone https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib.git
+vcs import < replanners_lib/deps.repos
+cd  ..
+```
+
+Then, from within the workspace follow this instructions to build:
 
 1. Setup the environment and build
 ```bash
-mkdir -p openmore_ws/build/replanners_lib && cd openmore_ws
+mkdir -p build/replanners_lib
 cmake -S replanners_lib -B build/replanners_lib -DCMAKE_INSTALL_PREFIX=${HOME}/openmore_ws/install
 make -C build/replanners_lib install
 ```
