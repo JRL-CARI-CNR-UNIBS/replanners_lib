@@ -24,7 +24,27 @@ option(BUILD_TESTS "Build the test executables" ON)
 option(USE_GRAPH_DISPLAY "'graph_display' SUPPORT" ON)
 
 # Dependencies
-include(cmake_config/Dependencies.cmake)
+set(DEPS graph_core::graph_core)
+set(PRIVATE_DEPS  )
+
+find_package(graph_core REQUIRED)
+
+###### If ROS is available include graph_display (for debugging) ######
+
+if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}" STREQUAL "2"))
+ find_package(PkgConfig REQUIRED)
+ pkg_check_modules(graph_display graph_display IMPORTED_TARGET)
+
+ if(graph_display_FOUND)
+   message("ROS VERSION AVAILABLE: $ENV{ROS_VERSION} -> INCLUDING 'graph_display'")
+   list(APPEND PRIVATE_DEPS PkgConfig::graph_display)
+   set(GRAPH_DISPLAY_AVAILABLE ON)
+ else()
+   message(WARNING "'graph_display' not found, setting GRAPH_DISPLAY_AVAILABLE to false")
+ endif()
+endif()
+
+########################################################################
 
 # Configure RPATH for libraries
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
@@ -34,8 +54,6 @@ set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_RPATH "")
 
 message(STATUS "${BLUE}CMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH}${RESET}")
-
-########################################################################
 
 configure_file("${PROJECT_SOURCE_DIR}/include/openmore/replanners/util/replanners_lib_config.h.in"
                "${PROJECT_SOURCE_DIR}/include/openmore/replanners/config/replanners_lib_config.h" @ONLY)
@@ -91,9 +109,6 @@ configure_package_config_file(
   INSTALL_DESTINATION share/${PROJECT_NAME}/cmake
   PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR
 )
-
-#configure_file("${CMAKE_SOURCE_DIR}/cmake_config/${PROJECT_NAME}Config.cmake.in"
-#               "${CMAKE_SOURCE_DIR}/cmake_config/${PROJECT_NAME}Config.cmake" @ONLY)
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
