@@ -1,4 +1,4 @@
-name: build
+name: build-manual-deps
 
 on:
   push:
@@ -58,6 +58,7 @@ jobs:
           git submodule update --init --recursive
           . update_submodules.sh
 
+          cd "$PATH_TO_WS"
           git clone https://github.com/JRL-CARI-CNR-UNIBS/graph_core.git
 
           cd "$PATH_TO_WS"
