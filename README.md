@@ -22,7 +22,7 @@ This is the list of the currently implemented replanners:
 5. [MPRRT](https://ieeexplore.ieee.org/document/7027233)
 
 ## Build & Install
-Downlaod dependencies using [vcstool](https://github.com/dirk-thomas/vcstool) and the [`deps.repos` file](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/deps.repos). Within your workspace, do:
+Download dependencies using [vcstool](https://github.com/dirk-thomas/vcstool) and the [`deps.repos` file](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/deps.repos). Within your workspace, do:
 ```bash
 mkdir -p openmore_ws/src && cd openmore_ws/src
 git clone https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib.git
