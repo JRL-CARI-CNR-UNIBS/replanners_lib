@@ -81,7 +81,7 @@ jobs:
           cmake -S graph_core/graph_core -B build/graph_core -DCMAKE_INSTALL_PREFIX=$PATH_TO_WS/install
           make -C build/graph_core install
 
-      - name: Build & Install graph_core
+      - name: Build & Install replanners_lib
         run: |
           mkdir -p build/replanners_lib
           cmake -B build/replanners_lib -DCMAKE_INSTALL_PREFIX=$PATH_TO_WS/install
