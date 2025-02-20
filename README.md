@@ -22,9 +22,8 @@ This is the list of the currently implemented replanners:
 5. [MPRRT](https://ieeexplore.ieee.org/document/7027233)
 
 ## Build & Install
-You can build with `colcon` using `colcon build`. 
+Dependencies are automatically downloaded using [CPM](https://github.com/cpm-cmake/CPM.cmake). Otherwise you can downlaod them using [vcstool](https://github.com/dirk-thomas/vcstool) and the [`deps.repos` file](https://github.com/JRL-CARI-CNR-UNIBS/replanners_lib/deps.repos). Then, follow this instructions to build:
 
-Alternatively, compile with CMake following these steps:
 1. Setup the environment and build
 ```bash
 mkdir -p openmore_ws/build/replanners_lib && cd openmore_ws
@@ -45,6 +44,9 @@ if [[ ":$CMAKE_PREFIX_PATH:" != *":$HOME/openmore_ws/install:"* ]]; then
     export CMAKE_PREFIX_PATH="$HOME/openmore_ws/install:$CMAKE_PREFIX_PATH"
 fi
 ```
+
+You can also build `replanners_lib` within a Catkin workspace, but before set `catkin config --install`.
+
 
 ## ROS Compatibility
 

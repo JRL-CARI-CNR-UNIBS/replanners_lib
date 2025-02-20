@@ -18,27 +18,18 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(graph_core REQUIRED)
-set(DEPS
-  graph_core::graph_core
-  )
-set(PRIVATE_DEPS
-  )
-
-  # Configure RPATH for libraries
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-list(APPEND CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
-set(CMAKE_BUILD_RPATH "")
-
-message(STATUS "${BLUE}CMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH}${RESET}")
-
 # Options
 option(BUILD_TESTS "Build the test executables" ON)
-
 # If ROS is available include graph_display
 option(USE_GRAPH_DISPLAY "'graph_display' SUPPORT" ON)
+
+# Dependencies
+set(DEPS graph_core::graph_core)
+set(PRIVATE_DEPS  )
+
+find_package(graph_core REQUIRED)
+
+###### If ROS is available include graph_display (for debugging) ######
 
 if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}" STREQUAL "2"))
  find_package(PkgConfig REQUIRED)
@@ -52,7 +43,17 @@ if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}
    message(WARNING "'graph_display' not found, setting GRAPH_DISPLAY_AVAILABLE to false")
  endif()
 endif()
+
 ########################################################################
+
+# Configure RPATH for libraries
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+list(APPEND CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_BUILD_RPATH "")
+
+message(STATUS "${BLUE}CMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH}${RESET}")
 
 configure_file("${PROJECT_SOURCE_DIR}/include/openmore/replanners/util/replanners_lib_config.h.in"
                "${PROJECT_SOURCE_DIR}/include/openmore/replanners/config/replanners_lib_config.h" @ONLY)
@@ -108,9 +109,6 @@ configure_package_config_file(
   INSTALL_DESTINATION share/${PROJECT_NAME}/cmake
   PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR
 )
-
-#configure_file("${CMAKE_SOURCE_DIR}/cmake_config/${PROJECT_NAME}Config.cmake.in"
-#               "${CMAKE_SOURCE_DIR}/cmake_config/${PROJECT_NAME}Config.cmake" @ONLY)
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
