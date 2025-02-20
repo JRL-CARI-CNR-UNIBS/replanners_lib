@@ -18,14 +18,15 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(graph_core REQUIRED)
-set(DEPS
-  graph_core::graph_core
-  )
-set(PRIVATE_DEPS
-  )
+# Options
+option(BUILD_TESTS "Build the test executables" ON)
+# If ROS is available include graph_display
+option(USE_GRAPH_DISPLAY "'graph_display' SUPPORT" ON)
 
-  # Configure RPATH for libraries
+# Dependencies
+include(cmake_config/Dependencies.cmake)
+
+# Configure RPATH for libraries
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 list(APPEND CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
@@ -34,24 +35,6 @@ set(CMAKE_BUILD_RPATH "")
 
 message(STATUS "${BLUE}CMAKE_INSTALL_RPATH=${CMAKE_INSTALL_RPATH}${RESET}")
 
-# Options
-option(BUILD_TESTS "Build the test executables" ON)
-
-# If ROS is available include graph_display
-option(USE_GRAPH_DISPLAY "'graph_display' SUPPORT" ON)
-
-if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}" STREQUAL "2"))
- find_package(PkgConfig REQUIRED)
- pkg_check_modules(graph_display graph_display IMPORTED_TARGET)
-
- if(graph_display_FOUND)
-   message("ROS VERSION AVAILABLE: $ENV{ROS_VERSION} -> INCLUDING 'graph_display'")
-   list(APPEND PRIVATE_DEPS PkgConfig::graph_display)
-   set(GRAPH_DISPLAY_AVAILABLE ON)
- else()
-   message(WARNING "'graph_display' not found, setting GRAPH_DISPLAY_AVAILABLE to false")
- endif()
-endif()
 ########################################################################
 
 configure_file("${PROJECT_SOURCE_DIR}/include/openmore/replanners/util/replanners_lib_config.h.in"

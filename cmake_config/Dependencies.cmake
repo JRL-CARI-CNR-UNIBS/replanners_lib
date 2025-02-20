@@ -5,6 +5,9 @@ if(POLICY CMP0167)
 endif()
 
 # Deps
+set(DEPS graph_core::graph_core)
+set(PRIVATE_DEPS  )
+
 file(
   DOWNLOAD
   https://github.com/cpm-cmake/CPM.cmake/releases/download/v0.40.5/CPM.cmake
@@ -26,14 +29,8 @@ message("\n-----------------------------------------------\n")
 ###### If ROS is available include graph_display (for debugging) ######
 
 if(USE_GRAPH_DISPLAY AND ("$ENV{ROS_VERSION}" STREQUAL "1" OR "$ENV{ROS_VERSION}" STREQUAL "2"))
-CPMFindPackage(
-  NAME graph_display
-  GITHUB_REPOSITORY JRL-CARI-CNR-UNIB/graph_display
-  GIT_TAG master
-)
-
-#  find_package(PkgConfig REQUIRED)
-#  pkg_check_modules(graph_display graph_display IMPORTED_TARGET)
+ find_package(PkgConfig REQUIRED)
+ pkg_check_modules(graph_display graph_display IMPORTED_TARGET)
 
  if(graph_display_FOUND)
    message("ROS VERSION AVAILABLE: $ENV{ROS_VERSION} -> INCLUDING 'graph_display'")
@@ -44,4 +41,4 @@ CPMFindPackage(
  endif()
 endif()
 
-message("\n-----------------------------------------------\n")
+########################################################################
