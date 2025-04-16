@@ -57,7 +57,7 @@ jobs:
           git clone --recurse-submodules https://github.com/JRL-CARI-CNR-UNIBS/cnr_common.git
           cd cnr_common
           git submodule update --init --recursive
-          chmod +x cnr_common/update_submodules.sh
+          chmod +x update_submodules.sh
           ./update_submodules.sh
 
           cd "$PATH_TO_WS"
