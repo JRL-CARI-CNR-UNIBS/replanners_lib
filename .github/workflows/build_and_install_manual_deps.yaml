@@ -36,7 +36,7 @@ jobs:
           apt-get install -y --no-install-recommends ca-certificates
           update-ca-certificates
           apt-get update --fix-missing
-          apt-get install -y cmake build-essential git libboost-all-dev libeigen3-dev libyaml-cpp-dev libpoco-dev liblog4cxx-dev libgtest-dev
+          apt-get install -y cmake build-essential git libboost-all-dev libeigen3-dev libyaml-cpp-dev libpoco-dev liblog4cxx-dev libgtest-dev --fix-missing
 
       - name: Build & Install Deps
         run: |
