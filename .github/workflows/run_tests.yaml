@@ -24,6 +24,9 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           apt-get clean
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates
+          update-ca-certificates
           apt-get update --fix-missing
           apt-get install -y cmake build-essential git  libboost-all-dev libeigen3-dev libyaml-cpp-dev libpoco-dev liblog4cxx-dev libgtest-dev
 

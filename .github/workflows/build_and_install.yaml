@@ -32,6 +32,9 @@ jobs:
           sed -i 's|http://archive.ubuntu.com|https://archive.ubuntu.com|g' /etc/apt/sources.list
 
           apt-get clean
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates
+          update-ca-certificates
           apt-get update --fix-missing
           apt-get install -y cmake build-essential git libboost-all-dev libeigen3-dev libyaml-cpp-dev libpoco-dev liblog4cxx-dev libgtest-dev
 
