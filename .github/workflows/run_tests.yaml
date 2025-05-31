@@ -23,8 +23,9 @@ jobs:
       - name: Install dependencies
         run: |
           export DEBIAN_FRONTEND=noninteractive
-          apt update
-          apt install -y cmake build-essential git  libboost-all-dev libeigen3-dev libyaml-cpp-dev libpoco-dev liblog4cxx-dev libgtest-dev
+          apt-get clean
+          apt-get update --fix-missing
+          apt-get install -y cmake build-essential git  libboost-all-dev libeigen3-dev libyaml-cpp-dev libpoco-dev liblog4cxx-dev libgtest-dev
 
       - name: Build & Install Deps
         run: |
